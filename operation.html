@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>PANJEPUN STORE - Kelola User</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial;background:#0a1629;color:#fff;min-height:100vh;padding:20px}
+.wrap{max-width:900px;margin:0 auto}
+.topbar{background:#12233a;border:1px solid #1e3a5f;border-radius:16px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h2{margin:0;color:#ff7a00;font-size:22px}
+.topbar p{margin:4px 0 0;color:#94a3b8;font-size:12px}
+.btn{padding:10px 16px;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:13px}
+.btn-orange{background:#ff7a00;color:#fff}
+.btn-ungu{background:#8b5cf6;color:#fff}
+.btn-hijau{background:#22c55e;color:#fff}
+.btn-merah{background:#ef4444;color:#fff}
+.btn-abu{background:#334155;color:#fff}
+.btn-kuning{background:#f59e0b;color:#fff}
+.grid{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#12233a;border:1px solid #1e3a5f;border-radius:16px;padding:20px;width:360px;max-width:100%}
+.form h3{margin:0 0 12px;color:#ff7a00}
+label{color:#cbd5e1;font-size:11px;font-weight:700;display:block;margin:12px 0 6px 0}
+input,select{width:100%;padding:12px;background:#1e293b;border:1px solid #334155;border-radius:10px;color:#fff;font-size:14px;outline:none}
+input:focus,select:focus{border-color:#ff7a00}
+.list{flex:1;background:#12233a;border:1px solid #1e3a5f;border-radius:16px;padding:16px;min-width:300px}
+.list-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.list-head input{width:220px;padding:10px}
+table{border-collapse:collapse;width:100%;margin-top:12px}
+th{background:#1e3a5f;color:#fff;padding:8px;font-size:11px;text-align:left}
+td{padding:8px;border-bottom:1px solid #334155;font-size:13px}
+td.center{text-align:center}
+.badge{padding:4px 8px;border-radius:20px;font-size:11px;font-weight:800}
+.badge-admin{background:#ff7a00;color:#fff}
+.badge-kasir{background:#22c55e;color:#fff}
+.badge-staff{background:#8b5cf6;color:#fff}
+.alert{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;margin-top:16px;font-size:12px;color:#cbd5e1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div><h2>🏪 PANJEPUN STORE</h2><p>Kelola User - Local, Tanpa Internet Beb</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-orange" onclick="window.location='dashboard.html'">🏠 Dashboard</button>
+      <button class="btn btn-ungu" onclick="window.location='tools.html'">🛠️ Tools</button>
+      <button class="btn btn-abu" onclick="window.location='index.html'">🚪 Login</button>
+    </div>
+  </div>
+
+  <div class="alert" id="infoLogin">Beb, cek login beb...</div>
+
+  <div class="grid">
+    <!-- BEB, FORM TAMBAH / EDIT USER BEB -->
+    <div class="form">
+      <h3 id="judulForm">➕ Tambah User Beb</h3>
+
+      <label>USERNAME (Tanpa Spasi Beb)</label>
+      <input id="username" placeholder="Contoh: budi, ani, putu" autocomplete="off">
+
+      <label>NAMA LENGKAP</label>
+      <input id="nama" placeholder="Contoh: Budi Santoso" autocomplete="off">
+
+      <label>ROLE</label>
+      <select id="role">
+        <option value="Kasir">Kasir</option>
+        <option value="Staff">Staff</option>
+        <option value="Admin">Admin</option>
+        <option value="Owner">Owner</option>
+      </select>
+
+      <label>PASSWORD</label>
+      <input type="password" id="password" placeholder="Buat password beb" autocomplete="off">
+      <button class="btn btn-abu" style="padding:6px 10px;font-size:11px;margin-top:6px" onclick="lihatPassForm()">👁️ Lihat Password</button>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-hijau" style="flex:1" id="btnSimpan" onclick="simpanUser()">💾 Simpan User</button>
+        <button class="btn btn-abu" onclick="resetForm()">Reset</button>
+      </div>
+      <p style="font-size:11px;color:#94a3b8;margin:10px 0 0">Beb, Username beb gak boleh beb sama beb dengan yang udah ada beb. Password beb inget-inget beb ya beb, kasih tau beb ke orang nya beb langsung beb, jangan beb di grup beb.</p>
+    </div>
+
+    <!-- BEB, DAFTAR USER BEB -->
+    <div class="list">
+      <div class="list-head">
+        <b>👥 Daftar User Beb (<span id="jumlahUser">0</span>)</b>
+        <input id="cari" placeholder="Cari nama / username..." oninput="renderTabel()">
+      </div>
+      <div style="overflow:auto">
+      <table>
+        <thead><tr><th>No</th><th>Username</th><th>Nama</th><th>Role</th><th>Password</th><th>Aksi</th></tr></thead>
+        <tbody id="tbodyUser"></tbody>
+      </table>
+      </div>
+      <div id="emptyMsg" style="text-align:center;padding:20px;color:#94a3b8">Belum ada user beb. Tambah dulu beb di kiri beb.</div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-kuning" style="flex:1" onclick="exportUser()">⬇️ Export User</button>
+        <button class="btn btn-ungu" style="flex:1" onclick="document.getElementById('fileImport').click()">⬆️ Import User</button>
+        <input type="file" id="fileImport" accept=".json" style="display:none" onchange="importUser(event)">
+      </div>
+      <p style="font-size:11px;color:#94a3b8">Beb, Export beb buat backup beb user beb. Import beb buat pindah beb ke HP lain beb.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_USERS = 'panjepun_users';
+const KEY_LOGIN = 'panjepun_user';
+
+function loadUsers(){ try{return JSON.parse(localStorage.getItem(KEY_USERS))||[]}catch(e){return[]} }
+function saveUsers(a){ localStorage.setItem(KEY_USERS, JSON.stringify(a)); }
+function loadLogin(){ try{return JSON.parse(localStorage.getItem(KEY_LOGIN) || localStorage.getItem("apama_user") || 'null')}catch(e){return null} }
+
+let dataUser = [];
+let editIndex = -1;
+
+function cekLogin(){
+  let login = loadLogin();
+  let info = document.getElementById('infoLogin');
+  if(!login){
+    info.innerText = "⚠️ Beb, belum login beb! Balik beb ke Login beb ya beb...";
+    info.style.borderColor = "#ef4444";
+    setTimeout(()=>{ window.location = "login.html"; }, 1500);
+    return false;
+  }
+  if(!login.isMaster){
+    info.innerText = "⚠️ Beb, cuma Master beb yang boleh buka Kelola User beb! Kamu login beb sebagai " + (login.nama || login.username) + " beb, balik beb ke Dashboard beb ya beb...";
+    info.style.borderColor = "#ef4444";
+    setTimeout(()=>{ window.location = "dashboard.html"; }, 2000);
+    return false;
+  }
+  info.innerText = "✅ Login beb sebagai Master beb (" + (login.nama || "Master") + ") - Beb boleh beb tambah / edit / hapus user beb.";
+  info.style.borderColor = "#22c55e";
+  return true;
+}
+function loadData(){
+  dataUser = loadUsers();
+  renderTabel();
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let list = dataUser.filter(u=>{
+    if(!kw) return true;
+    return String(u.username||'').toLowerCase().includes(kw) || String(u.nama||'').toLowerCase().includes(kw) || String(u.role||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodyUser'); tbody.innerHTML='';
+  document.getElementById('jumlahUser').innerText = dataUser.length;
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  list.forEach((u,idx)=>{
+    let idxAsli = dataUser.indexOf(u);
+    let badge = u.role==='Admin' || u.role==='Owner' ? 'badge-admin' : (u.role==='Kasir' ? 'badge-kasir' : 'badge-staff');
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td><b>${u.username}</b></td>
+      <td>${u.nama||'-'}</td>
+      <td><span class="badge ${badge}">${u.role||'-'}</span></td>
+      <td>•••••• <button class="btn btn-abu" style="padding:4px 8px;font-size:11px" onclick="lihatPasswordUser(${idxAsli})">👁️</button></td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-kuning" style="padding:6px 10px;font-size:11px" onclick="editUser(${idxAsli})">✏️ Edit</button>
+        <button class="btn btn-merah" style="padding:6px 10px;font-size:11px" onclick="hapusUser(${idxAsli})">🗑️ Hapus</button>
+      </td>
+    </tr>`;
+  });
+}
+function bersihUsername(t){ return String(t||'').trim().toLowerCase().replace(/\s+/g,''); }
+function simpanUser(){
+  let username = bersihUsername(document.getElementById('username').value);
+  let nama = document.getElementById('nama').value.trim();
+  let role = document.getElementById('role').value;
+  let password = document.getElementById('password').value;
+  if(!username) return alert("Isi Username dulu beb!");
+  if(!nama) return alert("Isi Nama dulu beb!");
+  if(!password) return alert("Isi Password dulu beb!");
+  if(password.length < 4) return alert("Password minimal 4 karakter beb!");
+  // BEB, CEK DUPLIKAT BEB
+  let duplikat = dataUser.findIndex((u,i)=> String(u.username).toLowerCase()===username && i!==editIndex);
+  if(duplikat!==-1) return alert("Username " + username + " udah ada beb! Pakai username lain beb.");
+  if(editIndex===-1){
+    dataUser.push({username:username, nama:nama, role:role, password:password, dibuat:new Date().toISOString()});
+    alert("✅ User ditambah beb!\n\nUsername: " + username + "\nNama: " + nama + "\nRole: " + role + "\n\nSekarang beb user nya beb bisa login beb di login.html beb.");
+  }else{
+    dataUser[editIndex] = {username:username, nama:nama, role:role, password:password, dibuat:dataUser[editIndex].dibuat||new Date().toISOString(), diubah:new Date().toISOString()};
+    alert("✅ User diupdate beb!");
+  }
+  saveUsers(dataUser);
+  resetForm();
+  loadData();
+}
+function editUser(idx){
+  let u = dataUser[idx];
+  if(!u) return;
+  editIndex = idx;
+  document.getElementById('username').value = u.username;
+  document.getElementById('nama').value = u.nama;
+  document.getElementById('role').value = u.role;
+  document.getElementById('password').value = u.password;
+  document.getElementById('judulForm').innerText = "✏️ Edit User Beb - " + u.username;
+  document.getElementById('btnSimpan').innerText = "💾 Update User";
+  document.getElementById('username').focus();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function hapusUser(idx){
+  let u = dataUser[idx];
+  if(!u) return;
+  if(!confirm("Hapus user ini beb?\n\nUsername: " + u.username + "\nNama: " + u.nama + "\nRole: " + u.role)) return;
+  dataUser.splice(idx,1);
+  saveUsers(dataUser);
+  loadData();
+  alert("User dihapus beb ✅");
+}
+function resetForm(){
+  editIndex = -1;
+  document.getElementById('username').value='';
+  document.getElementById('nama').value='';
+  document.getElementById('role').value='Kasir';
+  document.getElementById('password').value='';
+  document.getElementById('judulForm').innerText = "➕ Tambah User Beb";
+  document.getElementById('btnSimpan').innerText = "💾 Simpan User";
+}
+function lihatPassForm(){
+  let p = document.getElementById('password');
+  p.type = p.type==='password' ? 'text' : 'password';
+}
+function lihatPasswordUser(idx){
+  let u = dataUser[idx];
+  if(!u) return;
+  alert("Password " + u.username + " beb:\n\n" + u.password + "\n\nJangan beb dishare beb di grup beb ya beb, kasih tau beb langsung beb ke orang nya beb.");
+}
+function exportUser(){
+  let obj = {app:'PANJEPUN STORE', tipe:'users', exportAt:new Date().toISOString(), users:loadUsers()};
+  let blob = new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'users-panjepun-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  alert("Export User berhasil beb ✅");
+}
+function importUser(e){
+  let file = e.target.files[0];
+  if(!file) return;
+  let reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      let obj = JSON.parse(ev.target.result);
+      let baru = obj.users || obj;
+      if(!Array.isArray(baru)) return alert("File nya beb bukan file user beb!");
+      let lama = loadUsers();
+      let sudahAda = new Set(lama.map(x=>String(x.username).toLowerCase()));
+      let tambahan = baru.filter(x=>x.username && !sudahAda.has(String(x.username).toLowerCase()));
+      let gabung = lama.concat(tambahan);
+      saveUsers(gabung);
+      loadData();
+      alert("Import berhasil beb ✅\n\n" + tambahan.length + " user baru masuk beb, " + (baru.length - tambahan.length) + " user udah ada beb jadi beb dilewatin beb.");
+    }catch(err){
+      alert("File rusak beb / bukan JSON beb!");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+window.simpanUser=simpanUser; window.resetForm=resetForm; window.editUser=editUser; window.hapusUser=hapusUser; window.lihatPassForm=lihatPassForm; window.lihatPasswordUser=lihatPasswordUser; window.exportUser=exportUser; window.importUser=importUser; window.renderTabel=renderTabel;
+if(cekLogin()) loadData();
+</script>
+</body>
+</html>
