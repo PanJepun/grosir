@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laba Rugi - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px}
+.list{background:#fff;border:1px solid #aaa;min-width:300px;margin-top:10px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:160px;flex:1}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.filter{background:#fff;border:1px solid #aaa;padding:10px;margin:10px 10px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.filter label{font-size:11px;color:#555;display:block}
+.filter input,.filter select{padding:7px;border:1px solid #999;margin-top:3px}
+.laporan{background:#fff;border:1px solid #aaa;padding:14px;margin:10px}
+.laporan h3{margin:0 0 8px;text-align:center}
+.laporan p{margin:2px 0;text-align:center;color:#555;font-size:11px}
+.row-laporan{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #ddd}
+.row-laporan.total{border-bottom:2px solid #000;border-top:2px solid #000;font-weight:bold;font-size:14px}
+.row-laporan.bersih{background:#eaf7ee;font-weight:bold;font-size:16px;padding:10px;border:2px solid #28a745}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>📊 Laba Rugi</h2><p>Laporan aja beb - tidak ada transaksi di sini beb, transaksi beb di Petty Cash beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='dashboard.html'">🛒 Dashboard</button>
+    <button class="btn btn-orange" onclick="window.location='jualkredit.html'">💰 Jual</button>
+    <button class="btn btn-biru" onclick="window.location='beli.html'">🛒 Beli</button>
+    <button class="btn btn-kuning" onclick="window.location='pettycash.html'">💵 Petty Cash</button>
+    <button class="btn btn-kuning" onclick="exportLaba()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="filter">
+  <div><label>Dari Tanggal</label><input id="dari" type="date"></div>
+  <div><label>Sampai Tanggal</label><input id="sampai" type="date"></div>
+  <div>
+    <button class="btn btn-biru" onclick="hitungLaba()">🔍 Tampilkan</button>
+    <button class="btn" onclick="setPeriode('hari')">Hari Ini</button>
+    <button class="btn" onclick="setPeriode('minggu')">7 Hari</button>
+    <button class="btn" onclick="setPeriode('bulan')">Bulan Ini</button>
+    <button class="btn" onclick="setPeriode('semua')">Semua</button>
+  </div>
+  <div style="margin-left:auto">Saldo Petty Cash: <b id="saldoPettyInfo">Rp 0</b> | <button class="btn btn-kuning" onclick="window.location='pettycash.html'">💵 Buka Petty Cash</button></div>
+</div>
+
+<div class="summary">
+  <div class="card"><span>Pendapatan (Penjualan)</span><b id="sumPendapatan" style="color:#28a745">Rp 0</b></div>
+  <div class="card"><span>HPP (Modal)</span><b id="sumHpp" style="color:#dc3545">Rp 0</b></div>
+  <div class="card"><span>Laba Kotor</span><b id="sumKotor">Rp 0</b></div>
+  <div class="card"><span>Total Beban (dari Petty Cash Keluar)</span><b id="sumBeban" style="color:#dc3545">Rp 0</b></div>
+  <div class="card" style="border:2px solid #28a745;background:#eaf7ee"><span>Laba Bersih</span><b id="sumBersih" style="color:#28a745;font-size:22px">Rp 0</b></div>
+</div>
+
+<div class="wrap">
+  <div class="laporan">
+    <h3>📊 LAPORAN LABA RUGI</h3>
+    <p id="periodeTxt">Periode: Semua beb</p>
+    <p>VFP - Toko Beb</p>
+    <div style="margin-top:12px">
+      <div class="row-laporan"><span>1. Pendapatan / Penjualan</span><b id="lrPendapatan">Rp 0</b></div>
+      <div class="row-laporan" style="padding-left:16px;color:#555"><span> - Diskon Penjualan</span><span id="lrDiskon">Rp 0</span></div>
+      <div class="row-laporan"><span>&nbsp;&nbsp;&nbsp;Pendapatan Bersih</span><b id="lrPendapatanBersih">Rp 0</b></div>
+      <div class="row-laporan"><span>2. Harga Pokok Penjualan (HPP)</span><span id="lrHpp" style="color:#dc3545">(Rp 0)</span></div>
+      <div class="row-laporan total"><span>3. LABA KOTOR (1 - 2)</span><b id="lrKotor">Rp 0</b></div>
+      <div style="margin-top:10px;font-weight:bold">4. Beban - Beban (dari Petty Cash Keluar beb):</div>
+      <div id="listBebanLaporan"></div>
+      <div class="row-laporan"><span>Total Beban</span><b id="lrBeban" style="color:#dc3545">Rp 0</b></div>
+      <div class="row-laporan bersih"><span>5. LABA BERSIH (3 - 4)</span><span id="lrBersih">Rp 0</span></div>
+      <div class="row-laporan"><span>Margin Laba Kotor</span><span id="marginKotor">0%</span></div>
+      <div class="row-laporan"><span>Margin Laba Bersih</span><span id="marginBersih">0%</span></div>
+    </div>
+  </div>
+
+  <div class="list">
+    <div class="list-head"><b>📦 Laba Per Barang Beb</b></div>
+    <div class="table-wrap">
+    <table><thead><tr><th>Kode</th><th>Nama Barang</th><th>Qty Jual</th><th>Pendapatan</th><th>HPP</th><th>Laba</th><th>Margin</th></tr></thead><tbody id="tbodyPerBarang"></tbody></table>
+    <div id="emptyBarang" style="text-align:center;padding:20px;color:#888">Belum ada penjualan beb di periode ini beb.</div>
+    </div>
+  </div>
+
+  <div class="list">
+    <div class="list-head"><b>📅 Laba Per Hari Beb</b></div>
+    <div class="table-wrap">
+    <table><thead><tr><th>Tanggal</th><th>Qty</th><th>Pendapatan</th><th>HPP</th><th>Beban</th><th>Laba Bersih</th></tr></thead><tbody id="tbodyPerHari"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_BARANG='tbl_mstrbrg', KEY_JUAL='vfp_penjualan', KEY_TRANSAKSI='vfp_transaksi', KEY_BELI='vfp_pembelian', KEY_PETTY='vfp_pettycash';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadBarang(){ try{return JSON.parse(localStorage.getItem(KEY_BARANG))||[]}catch(e){return[]} }
+function loadJual(){ try{return JSON.parse(localStorage.getItem(KEY_JUAL))||[]}catch(e){return[]} }
+function loadTransaksi(){ try{return JSON.parse(localStorage.getItem(KEY_TRANSAKSI))||[]}catch(e){return[]} }
+function loadBeli(){ try{return JSON.parse(localStorage.getItem(KEY_BELI))||[]}catch(e){return[]} }
+function loadPetty(){ try{return JSON.parse(localStorage.getItem(KEY_PETTY))||[]}catch(e){return[]} }
+
+let dataBarang=[], dataJual=[], dataPetty=[];
+
+function loadData(){
+  dataBarang = loadBarang();
+  dataJual = loadJual();
+  dataPetty = loadPetty();
+  let now = new Date();
+  let awalBulan = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01';
+  let akhirBulan = now.toISOString().split('T')[0];
+  if(!document.getElementById('dari').value) document.getElementById('dari').value = awalBulan;
+  if(!document.getElementById('sampai').value) document.getElementById('sampai').value = akhirBulan;
+  hitungLaba();
+}
+function setPeriode(jenis){
+  let now = new Date();
+  let sampai = now.toISOString().split('T')[0];
+  let dari = sampai;
+  if(jenis==='hari'){ dari = sampai; }
+  if(jenis==='minggu'){ let d = new Date(now); d.setDate(d.getDate()-6); dari = d.toISOString().split('T')[0]; }
+  if(jenis==='bulan'){ dari = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01'; }
+  if(jenis==='semua'){ dari=''; sampai=''; }
+  document.getElementById('dari').value = dari;
+  document.getElementById('sampai').value = sampai;
+  hitungLaba();
+}
+function getHppBarang(kode, qty){
+  let b = dataBarang.find(x=>String(x.kodebrg)===String(kode));
+  if(b && Number(b.hpp||0)>0) return Number(b.hpp) * Number(qty||0);
+  let beli = loadBeli().filter(x=>String(x.kode)===String(kode)).sort((a,b)=>new Date(b.waktu||0)-new Date(a.waktu||0));
+  if(beli.length) return Number(beli[0].harga||0) * Number(qty||0);
+  return 0;
+}
+function hitungLaba(){
+  let dari = document.getElementById('dari').value;
+  let sampai = document.getElementById('sampai').value;
+  let jual = dataJual.filter(j=>{
+    if(dari && String(j.tanggal) < dari) return false;
+    if(sampai && String(j.tanggal) > sampai) return false;
+    return true;
+  });
+  if(jual.length===0){
+    let trx = loadTransaksi().filter(t=>{
+      let tgl = t.tanggal || (t.waktu ? new Date(t.waktu).toISOString().split('T')[0] : '');
+      if(dari && tgl < dari) return false;
+      if(sampai && tgl > sampai) return false;
+      return true;
+    });
+    jual = trx.map(t=>({tanggal:t.tanggal||new Date(t.waktu).toISOString().split('T')[0], kode:t.kode||'', nama:t.nama||t.namaBarang||'', qty:Number(t.qty||0), harga:Number(t.harga||0), total:Number(t.total||0), diskon:Number(t.diskon||0), waktu:t.waktu}));
+  }
+  let pettyPeriode = dataPetty.filter(b=>{
+    if(dari && String(b.tanggal) < dari) return false;
+    if(sampai && String(b.tanggal) > sampai) return false;
+    return true;
+  });
+  let bebanList = pettyPeriode.filter(p=>p.jenis==='Keluar');
+  let totalBeban = bebanList.reduce((a,b)=>a+Number(b.nominal||0),0);
+  let saldoPetty = dataPetty.reduce((a,b)=>a + (b.jenis==='Masuk' ? Number(b.nominal||0) : -Number(b.nominal||0)), 0);
+
+  let pendapatan = jual.reduce((a,b)=>a+Number(b.total||0),0);
+  let diskon = jual.reduce((a,b)=>a+Number(b.diskon||0),0);
+  let pendapatanKotor = pendapatan + diskon;
+  let hpp = 0;
+  jual.forEach(j=>{ hpp += getHppBarang(j.kode, j.qty); });
+  let labaKotor = pendapatan - hpp;
+  let labaBersih = labaKotor - totalBeban;
+
+  document.getElementById('periodeTxt').innerText = 'Periode: ' + (dari||'Awal') + ' s/d ' + (sampai||'Sekarang') + ' beb';
+  document.getElementById('saldoPettyInfo').innerText = fmtRp(saldoPetty);
+  document.getElementById('sumPendapatan').innerText = fmtRp(pendapatan);
+  document.getElementById('sumHpp').innerText = fmtRp(hpp);
+  document.getElementById('sumKotor').innerText = fmtRp(labaKotor);
+  document.getElementById('sumBeban').innerText = fmtRp(totalBeban);
+  document.getElementById('sumBersih').innerText = fmtRp(labaBersih);
+  document.getElementById('sumBersih').style.color = labaBersih>=0 ? '#28a745' : '#dc3545';
+  document.getElementById('lrPendapatan').innerText = fmtRp(pendapatanKotor);
+  document.getElementById('lrDiskon').innerText = fmtRp(diskon);
+  document.getElementById('lrPendapatanBersih').innerText = fmtRp(pendapatan);
+  document.getElementById('lrHpp').innerText = '('+fmtRp(hpp)+')';
+  document.getElementById('lrKotor').innerText = fmtRp(labaKotor);
+  document.getElementById('lrBeban').innerText = fmtRp(totalBeban);
+  document.getElementById('lrBersih').innerText = fmtRp(labaBersih);
+  document.getElementById('lrBersih').style.color = labaBersih>=0 ? '#28a745' : '#dc3545';
+  document.getElementById('marginKotor').innerText = pendapatan>0 ? ((labaKotor/pendapatan)*100).toFixed(1)+'%' : '0%';
+  document.getElementById('marginBersih').innerText = pendapatan>0 ? ((labaBersih/pendapatan)*100).toFixed(1)+'%' : '0%';
+
+  let perJenis = {};
+  bebanList.forEach(b=>{ perJenis[b.kategori||'Lain-lain'] = (perJenis[b.kategori||'Lain-lain']||0) + Number(b.nominal||0); });
+  let listBebanEl = document.getElementById('listBebanLaporan');
+  listBebanEl.innerHTML = Object.keys(perJenis).length ? Object.keys(perJenis).map(k=>`<div class="row-laporan" style="padding-left:16px"><span> - ${k}</span><span>${fmtRp(perJenis[k])}</span></div>`).join('') : '<div class="row-laporan" style="padding-left:16px;color:#888"><span> - Belum ada petty cash keluar beb</span><span>Rp 0</span></div>';
+
+  let perBarang = {};
+  jual.forEach(j=>{
+    if(!perBarang[j.kode]) perBarang[j.kode] = {kode:j.kode, nama:j.nama, qty:0, pendapatan:0, hpp:0};
+    perBarang[j.kode].qty += Number(j.qty||0);
+    perBarang[j.kode].pendapatan += Number(j.total||0);
+    perBarang[j.kode].hpp += getHppBarang(j.kode, j.qty);
+  });
+  let tbodyBarang = document.getElementById('tbodyPerBarang'); tbodyBarang.innerHTML='';
+  let arrBarang = Object.values(perBarang).sort((a,b)=> (b.pendapatan-b.hpp) - (a.pendapatan-a.hpp));
+  document.getElementById('emptyBarang').style.display = arrBarang.length ? 'none':'block';
+  arrBarang.forEach(b=>{
+    let laba = b.pendapatan - b.hpp;
+    let margin = b.pendapatan>0 ? ((laba/b.pendapatan)*100).toFixed(1)+'%' : '0%';
+    tbodyBarang.innerHTML += `<tr><td class="center"><b>${b.kode}</b></td><td>${b.nama}</td><td class="num">${fmt(b.qty)}</td><td class="num">${fmtRp(b.pendapatan)}</td><td class="num">${fmtRp(b.hpp)}</td><td class="num" style="font-weight:bold;color:${laba>=0?'#28a745':'#dc3545'}">${fmtRp(laba)}</td><td class="center">${margin}</td></tr>`;
+  });
+
+  let perHari = {};
+  jual.forEach(j=>{
+    if(!perHari[j.tanggal]) perHari[j.tanggal] = {tanggal:j.tanggal, qty:0, pendapatan:0, hpp:0};
+    perHari[j.tanggal].qty += Number(j.qty||0);
+    perHari[j.tanggal].pendapatan += Number(j.total||0);
+    perHari[j.tanggal].hpp += getHppBarang(j.kode, j.qty);
+  });
+  let tbodyHari = document.getElementById('tbodyPerHari'); tbodyHari.innerHTML='';
+  Object.keys(perHari).sort().forEach(tgl=>{
+    let h = perHari[tgl];
+    let bebanHari = dataPetty.filter(b=>String(b.tanggal)===String(tgl) && b.jenis==='Keluar').reduce((a,b)=>a+Number(b.nominal||0),0);
+    let labaHari = h.pendapatan - h.hpp - bebanHari;
+    tbodyHari.innerHTML += `<tr><td class="center">${tgl}</td><td class="num">${fmt(h.qty)}</td><td class="num">${fmtRp(h.pendapatan)}</td><td class="num">${fmtRp(h.hpp)}</td><td class="num">${fmtRp(bebanHari)}</td><td class="num" style="font-weight:bold;color:${labaHari>=0?'#28a745':'#dc3545'}">${fmtRp(labaHari)}</td></tr>`;
+  });
+  if(Object.keys(perHari).length===0) tbodyHari.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888">Belum ada penjualan beb di periode ini beb.</td></tr>';
+}
+function exportLaba(){
+  let data={laporan:{dari:document.getElementById('dari').value, sampai:document.getElementById('sampai').value, pendapatan:document.getElementById('lrPendapatanBersih').innerText, hpp:document.getElementById('lrHpp').innerText, labaKotor:document.getElementById('lrKotor').innerText, beban:document.getElementById('lrBeban').innerText, labaBersih:document.getElementById('lrBersih').innerText, saldoPetty:document.getElementById('saldoPettyInfo').innerText}, pettycash:loadPetty(), penjualan:loadJual(), pembelian:loadBeli(), barang:loadBarang(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='labarugi-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.hitungLaba=hitungLaba; window.setPeriode=setPeriode; window.exportLaba=exportLaba;
+loadData();
+</script>
+</body>
+</html>

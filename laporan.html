@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kartu Stok - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-kasir{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-stok{background:#ffc107}
+.btn-danger{background:#dc3545;color:#fff}
+.filterbar{background:#f2f2f2;padding:8px 10px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap}
+.filterbar input,.filterbar select{padding:5px;border:1px solid #999;background:#fff;font-size:12px}
+.filterbar input{width:200px}
+.table-wrap{background:#fff;margin:0 10px 10px;border:1px solid #aaa;overflow:auto;max-height:68vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+tr:hover td{background:#eef6ff}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff}
+.b-masuk{background:#28a745}.b-keluar{background:#dc3545}.b-penjualan{background:#dc3545}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>📒 Kartu Stok</h2><p>Riwayat masuk / keluar stok beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+    <button class="btn btn-danger" onclick="hapusTerfilter()">🗑️ Hapus Yang Tampil</button>
+    <button class="btn btn-danger" onclick="hapusSemua()">🗑️ Hapus Semua</button>
+    <button class="btn btn-stok" onclick="window.location='laporan.html'">🧾 Laporan Transaksi</button>
+    <button class="btn btn-kasir" onclick="window.location='kasir.html'">🛒 Balik ke Kasir</button>
+  </div>
+</div>
+
+<div class="filterbar">
+  <label>Cari:</label><input id="cari" placeholder="Kode / Nama / No Bukti..." oninput="renderTabel()">
+  <label>Tanggal:</label><input id="filterTanggal" type="date" onchange="renderTabel()">
+  <label>Tipe:</label><select id="filterTipe" onchange="renderTabel()"><option value="">Semua Tipe</option><option value="Masuk">Masuk</option><option value="Penjualan">Penjualan</option><option value="Keluar">Keluar</option></select>
+  <button class="btn" onclick="resetFilter()">Reset</button>
+  <span style="margin-left:auto">Data: <b id="countData">0</b> baris</span>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th style="width:35px">No</th><th style="width:130px">Tanggal / Jam</th><th style="width:90px">Kode Barang</th><th>Nama Barang</th><th style="width:90px">Tipe</th><th style="width:110px">No Bukti</th><th style="width:80px">Masuk</th><th style="width:80px">Keluar</th><th style="width:80px">Sisa</th><th style="width:60px">Hapus</th></tr>
+</thead>
+<tbody id="tbodyKartu"></tbody>
+</table>
+<div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada riwayat stok beb.</div>
+</div>
+
+<div style="padding:0 10px 10px;font-size:11px;color:#555;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  <div>Key: <b>tbl_mstrbrg</b> untuk stok • <b>vfp_kartu_stok</b> untuk riwayat • <b>vfp_transaksi</b> untuk penjualan beb</div>
+  <div>Tips: Klik Refresh beb kalau habis jualan tapi belum muncul beb.</div>
+</div>
+
+<script>
+const KEY_KARTU='vfp_kartu_stok';
+const KEY_BARANG='tbl_mstrbrg';
+const KEY_TRANSAKSI='vfp_transaksi';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function loadKartu(){ try{return JSON.parse(localStorage.getItem(KEY_KARTU))||[]}catch(e){return[]} }
+function saveKartu(d){ localStorage.setItem(KEY_KARTU, JSON.stringify(d)); }
+let dataKartu=[];
+
+// BEB, BARU BEB - AUTO BERSIH KARTU YANG NOTA NYA UDAH DIHAPUS DI LAPORAN BEB
+// BEB, INI BEB OBAT BUAT YANG BEB BILANG TADI BEB: LAPORAN UDAH BALIK STOK, TAPI KARTU MASIH ADA BEB
+function bersihkanKartuYatim(){
+  let kartu = loadKartu();
+  if(!kartu.length) return 0;
+  let transaksi = [];
+  try{ transaksi = JSON.parse(localStorage.getItem(KEY_TRANSAKSI)||'[]'); }catch(e){ transaksi = []; }
+  let noAktif = new Set(transaksi.map(t=>String(t.noFaktur||t.noBukti||'')));
+  let awal = kartu.length;
+  // BEB, HAPUS YANG TIPE PENJUALAN TAPI NO BUKTI NYA UDAH GAK ADA DI LAPORAN BEB
+  // BEB, JANGAN BALIKIN STOK LAGI BEB, KARENA DI LAPORAN UDAH BALIK BEB!
+  let bersih = kartu.filter(k=>{
+    if(k.tipe !== 'Penjualan') return true;
+    let no = String(k.noBukti||k.bukti||'');
+    if(!no) return true;
+    return noAktif.has(no);
+  });
+  if(bersih.length !== awal){
+    saveKartu(bersih);
+    return awal - bersih.length;
+  }
+  return 0;
+}
+
+function loadData(){
+  // BEB, TIAP BUKA / REFRESH BEB, BERSIHIN DULU YANG YATIM BEB
+  let dibersihkan = bersihkanKartuYatim();
+  dataKartu = loadKartu();
+  renderTabel();
+  if(dibersihkan > 0){
+    // BEB, KASIH TAU BEB KALAU ADA YANG DIBERSIHIN BEB
+    console.log(dibersihkan + ' baris kartu yatim dibersihkan beb');
+  }
+}
+function getFiltered(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let tg = document.getElementById('filterTanggal').value;
+  let ft = document.getElementById('filterTipe').value;
+  return dataKartu.filter(x=>{
+    if(kw && !(String(x.kode||'').toLowerCase().includes(kw) || String(x.nama||'').toLowerCase().includes(kw) || String(x.noBukti||x.bukti||'').toLowerCase().includes(kw))) return false;
+    if(ft && x.tipe!==ft) return false;
+    if(tg){ let d = x.waktu ? new Date(x.waktu).toISOString().split('T')[0] : ''; if(d!==tg) return false; }
+    return true;
+  });
+}
+function badgeTipe(tipe){
+  let cls = tipe==='Masuk' ? 'b-masuk' : 'b-keluar';
+  return `<span class="badge ${cls}">${tipe}</span>`;
+}
+function renderTabel(){
+  let list = getFiltered();
+  list.sort((a,b)=> new Date(b.waktu||0) - new Date(a.waktu||0));
+  let tbody = document.getElementById('tbodyKartu'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  document.getElementById('countData').innerText = list.length;
+  list.forEach((x,idx)=>{
+    let idxAsli = dataKartu.indexOf(x);
+    let masuk = Number(x.masuk||0);
+    let keluar = Number(x.keluar||0);
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td>${x.waktuLocal || (x.waktu ? new Date(x.waktu).toLocaleString('id-ID') : '-')}</td>
+      <td class="center">${x.kode||'-'}</td>
+      <td>${x.nama||'-'}</td>
+      <td class="center">${badgeTipe(x.tipe||'')}</td>
+      <td class="center">${x.noBukti||x.bukti||'-'}</td>
+      <td class="num" style="color:#28a745;font-weight:bold">${masuk ? fmt(masuk) : '-'}</td>
+      <td class="num" style="color:#dc3545;font-weight:bold">${keluar ? fmt(keluar) : '-'}</td>
+      <td class="num"><b>${fmt(x.sisa||0)}</b></td>
+      <td class="center"><button class="btn btn-danger" style="padding:4px 8px;" onclick="hapusBaris(${idxAsli})" title="Hapus baris ini + kembalikan stok">🗑️</button></td>
+    </tr>`;
+  });
+}
+
+function hitungDeltaStok(x){
+  let masuk = Number(x.masuk||0);
+  let keluar = Number(x.keluar||0);
+  if(x.tipe === 'Masuk') return -masuk;
+  if(x.tipe === 'Penjualan' || x.tipe === 'Keluar') return +keluar;
+  if(masuk > 0) return -masuk;
+  if(keluar > 0) return +keluar;
+  return 0;
+}
+
+function kembalikanStokSatuBaris(x){
+  let delta = hitungDeltaStok(x);
+  if(delta === 0) return;
+  let mentah = [];
+  try{ mentah = JSON.parse(localStorage.getItem(KEY_BARANG))||[]; }catch(e){ mentah = []; }
+  let idx = mentah.findIndex(m => String(m.kodebrg) === String(x.kode));
+  if(idx >= 0){
+    mentah[idx].jmlbrg = Number(mentah[idx].jmlbrg||0) + delta;
+    localStorage.setItem(KEY_BARANG, JSON.stringify(mentah));
+  }
+  dataKartu.forEach(y=>{
+    if(y === x) return;
+    if(String(y.kode) !== String(x.kode)) return;
+    if(new Date(y.waktu||0) > new Date(x.waktu||0)){
+      y.sisa = Number(y.sisa||0) + delta;
+    }
+  });
+}
+
+function hapusDariTransaksi(x){
+  if(x.tipe !== 'Penjualan') return;
+  let noBukti = String(x.noBukti||x.bukti||'');
+  if(!noBukti) return;
+  let semua = [];
+  try{ semua = JSON.parse(localStorage.getItem(KEY_TRANSAKSI))||[]; }catch(e){ semua = []; }
+  let berubah = false;
+  semua = semua.map(trx=>{
+    if(String(trx.noFaktur) !== noBukti) return trx;
+    let itemsBaru = (trx.items||[]).filter(it=>{
+      if(String(it.kode) === String(x.kode) && Number(it.qty) === Number(x.keluar)){
+        berubah = true;
+        return false;
+      }
+      return true;
+    });
+    if(itemsBaru.length === 0) return null;
+    let sub = itemsBaru.reduce((s,i)=> s + (Number(i.qty||0)*Number(i.harga||0)), 0);
+    trx.items = itemsBaru;
+    trx.subtotal = sub;
+    trx.total = sub - Number(trx.discNota||0);
+    return trx;
+  }).filter(Boolean);
+  if(berubah) localStorage.setItem(KEY_TRANSAKSI, JSON.stringify(semua));
+}
+
+function hapusBaris(idxAsli){
+  let x = dataKartu[idxAsli];
+  if(!x) return;
+  let delta = hitungDeltaStok(x);
+  let pesanStok = delta > 0 ? 'Stok akan DITAMBAH '+fmt(delta)+' beb.' : delta < 0 ? 'Stok akan DIKURANGI '+fmt(Math.abs(delta))+' beb.' : '';
+  if(!confirm('Hapus baris ini beb?\n\n'+(x.nama||'')+' | '+ (x.noBukti||'') +' | Tipe: '+(x.tipe||'')+'\n\n'+pesanStok+'\nStok akan KEMBALI beb.')) return;
+  kembalikanStokSatuBaris(x);
+  hapusDariTransaksi(x);
+  dataKartu.splice(idxAsli, 1);
+  saveKartu(dataKartu);
+  renderTabel();
+  alert('Baris dihapus beb! Stok sudah balik beb! ✅');
+}
+function hapusTerfilter(){
+  let list = getFiltered();
+  if(!list.length){ alert('Tidak ada data yang tampil beb!'); return; }
+  if(!confirm('Hapus '+list.length+' baris yang TAMPIL ini beb?\n\nStok akan DIKEMBALIKAN semua beb. Yakin beb?')) return;
+  list.forEach(x=>{ kembalikanStokSatuBaris(x); hapusDariTransaksi(x); });
+  let hapusSet = new Set(list);
+  dataKartu = dataKartu.filter(x=>!hapusSet.has(x));
+  saveKartu(dataKartu);
+  renderTabel();
+  alert(list.length+' baris dihapus beb! Stok sudah balik beb! ✅');
+}
+function hapusSemua(){
+  if(!dataKartu.length){ alert('Sudah kosong beb!'); return; }
+  if(!confirm('Hapus SEMUA '+dataKartu.length+' riwayat kartu stok beb?\n\nStok akan DIKEMBALIKAN semua beb. Yakin beb?')) return;
+  if(!confirm('YAKIN BANGET beb? Ini tidak bisa balik beb!')) return;
+  [...dataKartu].forEach(x=>{ kembalikanStokSatuBaris(x); hapusDariTransaksi(x); });
+  dataKartu = [];
+  saveKartu(dataKartu);
+  renderTabel();
+  alert('Semua riwayat dihapus beb! Stok sudah balik beb! ✅');
+}
+function resetFilter(){ document.getElementById('cari').value=''; document.getElementById('filterTanggal').value=''; document.getElementById('filterTipe').value=''; renderTabel(); }
+window.loadData=loadData; window.renderTabel=renderTabel; window.resetFilter=resetFilter; window.hapusBaris=hapusBaris; window.hapusTerfilter=hapusTerfilter; window.hapusSemua=hapusSemua;
+loadData();
+</script>
+</body>
+</html>

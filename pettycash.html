@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Petty Cash - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input,.list-head select{padding:6px;border:1px solid #999}
+.list-head input{width:220px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:160px;flex:1}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.pilih-jenis{display:flex;gap:8px;margin-top:6px}
+.pilih-jenis button{flex:1;padding:12px;font-weight:bold;cursor:pointer;border:2px solid #999;background:#fff;border-radius:6px;font-size:13px}
+.pilih-jenis button.aktif-masuk{background:#28a745;color:#fff;border-color:#1e7e34}
+.pilih-jenis button.aktif-keluar{background:#dc3545;color:#fff;border-color:#a71d2a}
+.saldo-awal-box{background:#fffbe6;border:2px solid #ffc107;padding:12px;margin-bottom:10px}
+.saldo-awal-box .row{display:flex;gap:8px;align-items:end;margin-top:8px}
+.saldo-awal-box .row>div{flex:1}
+.saldo-awal-box label{font-size:11px;color:#555;display:block}
+.saldo-awal-box input{width:100%;padding:7px;border:1px solid #999;margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>💵 Petty Cash - Kas Kecil</h2><p>Kas kecil beb - Saldo Awal Harian beb dulu beb, baru transaksi beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-biru" onclick="window.location='labarugi.html'">📊 Laba Rugi</button>
+    <button class="btn btn-orange" onclick="window.location='jualkredit.html'">💰 Jual</button>
+    <button class="btn btn-kuning" onclick="exportPetty()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<!-- BEB, SALDO AWAL HARIAN BEB DI SINI BEB -->
+<div style="padding:10px 10px 0">
+  <div class="saldo-awal-box">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
+      <b style="font-size:14px">🌅 Saldo Awal Harian Petty Cash Beb</b>
+      <span id="infoSaldoAwal" style="font-size:11px;color:#555"></span>
+    </div>
+    <div class="row">
+      <div><label>Tanggal</label><input id="tglSaldoAwal" type="date" onchange="isiSaldoAwalDariTanggal()"></div>
+      <div><label>Saldo Awal Hari Itu (Rp)</label><input id="saldoAwalInput" type="number" min="0" value="0"></div>
+      <div style="flex:0 0 auto"><button class="btn btn-kuning" style="padding:8px 14px" onclick="simpanSaldoAwal()">💾 Simpan Saldo Awal</button></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;font-size:12px">
+      <span>Saldo Awal: <b id="saldoAwalTxt">Rp 0</b></span>
+      <span>Masuk Hari Ini: <b id="masukHariTxt" style="color:#28a745">Rp 0</b></span>
+      <span>Keluar Hari Ini: <b id="keluarHariTxt" style="color:#dc3545">Rp 0</b></span>
+      <span>Saldo Akhir Hari Ini: <b id="saldoAkhirTxt" style="color:#28a745;font-size:14px">Rp 0</b></span>
+    </div>
+    <p style="font-size:11px;color:#555;margin:6px 0 0">Beb, contoh beb: pagi beb buka toko beb, di laci beb ada Rp 200.000 beb, isi beb 200000 beb di sini beb, Simpan beb. Nanti beb saldo akhir beb hari ini beb otomatis beb jadi Saldo Awal beb besok beb, kalau beb beda beb tinggal beb ubah beb aja beb.</p>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card" style="border:2px solid #ffc107;background:#fffbe6"><span>💵 Saldo Petty Cash Sekarang Beb (Total)</span><b id="saldoPetty" style="font-size:24px">Rp 0</b></div>
+  <div class="card"><span>Total Masuk (Semua)</span><b id="sumMasuk" style="color:#28a745">Rp 0</b></div>
+  <div class="card"><span>Total Keluar (Semua)</span><b id="sumKeluar" style="color:#dc3545">Rp 0</b></div>
+  <div class="card"><span>Jumlah Transaksi</span><b id="sumTrx">0</b></div>
+</div>
+
+<div class="wrap">
+  <div class="form">
+    <h3>➕ Transaksi Petty Cash Beb</h3>
+    <label>Tanggal</label>
+    <input id="tgl" type="date" onchange="syncTanggalSaldoAwal()">
+
+    <label>Jenis Transaksi</label>
+    <div class="pilih-jenis">
+      <button id="btnMasuk" onclick="pilihJenis('Masuk')">⬆️ MASUK<br><small>Tambah Dana</small></button>
+      <button id="btnKeluar" class="aktif-keluar" onclick="pilihJenis('Keluar')">⬇️ KELUAR<br><small>Bayar Beban</small></button>
+    </div>
+    <input type="hidden" id="jenis" value="Keluar">
+
+    <label>Kategori</label>
+    <select id="kategori">
+      <option value="Listrik">Listrik</option>
+      <option value="Sewa Toko">Sewa Toko</option>
+      <option value="Gaji">Gaji</option>
+      <option value="Transport / Bensin">Transport / Bensin</option>
+      <option value="Pulsa / Internet">Pulsa / Internet</option>
+      <option value="Plastik / Kemasan">Plastik / Kemasan</option>
+      <option value="Tambah Dana Kas Kecil">Tambah Dana Kas Kecil</option>
+      <option value="Lain-lain">Lain-lain</option>
+    </select>
+
+    <label>Nominal</label>
+    <input id="nominal" type="number" min="0" value="0">
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Bayar listrik bulan ini beb">
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-hijau" style="flex:1" id="btnSimpan" onclick="simpanPetty()">💾 Simpan</button>
+      <button class="btn" onclick="resetForm()">Reset</button>
+    </div>
+    <p style="font-size:11px;color:#555">Beb, yang <b>Keluar</b> beb akan masuk beb ke <b>Beban</b> beb di Laba Rugi beb. Yang <b>Masuk</b> beb cuma beb nambah saldo beb aja beb.</p>
+  </div>
+
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Riwayat Petty Cash Beb</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input id="cari" placeholder="Cari kategori / keterangan..." oninput="renderTabel()">
+        <select id="filterJenis" onchange="renderTabel()"><option value="">Semua</option><option value="Masuk">Masuk</option><option value="Keluar">Keluar</option></select>
+        <input id="filterTanggal" type="date" onchange="renderTabel()">
+      </div>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Keterangan</th><th>Masuk</th><th>Keluar</th><th>Saldo Setelah</th><th>Hapus</th></tr></thead>
+      <tbody id="tbodyPetty"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada petty cash beb. Isi Saldo Awal dulu beb di atas beb, baru transaksi beb.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_PETTY='vfp_pettycash', KEY_BEBAN='vfp_beban', KEY_SALDO_AWAL='vfp_pettycash_saldo_awal';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadPetty(){ try{return JSON.parse(localStorage.getItem(KEY_PETTY))||[]}catch(e){return[]} }
+function savePetty(a){ localStorage.setItem(KEY_PETTY, JSON.stringify(a)); }
+function loadSaldoAwal(){ try{return JSON.parse(localStorage.getItem(KEY_SALDO_AWAL))||{}}catch(e){return{}} }
+function saveSaldoAwal(o){ localStorage.setItem(KEY_SALDO_AWAL, JSON.stringify(o)); }
+
+let dataPetty=[];
+let dataSaldoAwal={};
+let jenisAktif='Keluar';
+
+function loadData(){
+  dataPetty = loadPetty();
+  dataSaldoAwal = loadSaldoAwal();
+  try{
+    let bebanLama = JSON.parse(localStorage.getItem(KEY_BEBAN)||'[]');
+    if(bebanLama.length>0 && dataPetty.length===0){
+      dataPetty = bebanLama.map(b=>({tanggal:b.tanggal, jenis:'Keluar', kategori:b.jenis||'Lain-lain', nominal:Number(b.nominal||0), ket:b.ket||'Migrasi dari Beban lama beb', dibuat:b.dibuat||new Date().toISOString()}));
+      savePetty(dataPetty);
+      localStorage.removeItem(KEY_BEBAN);
+    }
+  }catch(e){}
+  let hariIni = new Date().toISOString().split('T')[0];
+  if(!document.getElementById('tgl').value) document.getElementById('tgl').value = hariIni;
+  if(!document.getElementById('tglSaldoAwal').value) document.getElementById('tglSaldoAwal').value = hariIni;
+  isiSaldoAwalDariTanggal();
+  updateSummary();
+  renderTabel();
+}
+
+// BEB, HITUNG SALDO AWAL BEB PER TANGGAL BEB
+function getSaldoAwalTanggal(tgl){
+  if(dataSaldoAwal[tgl] !== undefined) return Number(dataSaldoAwal[tgl]||0);
+  // BEB, KALAU BELUM PERNAH DIISI BEB, PAKAI SALDO AKHIR KEMARIN BEB
+  let tglSebelumnya = Object.keys(dataSaldoAwal).filter(t=>t < tgl).sort().pop();
+  if(tglSebelumnya){
+    // BEB, SALDO AKHIR TANGGAL SEBELUMNYA BEB = SALDO AWAL NYA BEB + MASUK - KELUAR HARI ITU BEB
+    let awal = Number(dataSaldoAwal[tglSebelumnya]||0);
+    let masuk = dataPetty.filter(p=>String(p.tanggal)===String(tglSebelumnya) && p.jenis==='Masuk').reduce((a,b)=>a+Number(b.nominal||0),0);
+    let keluar = dataPetty.filter(p=>String(p.tanggal)===String(tglSebelumnya) && p.jenis==='Keluar').reduce((a,b)=>a+Number(b.nominal||0),0);
+    return awal + masuk - keluar;
+  }
+  // BEB, KALAU BELUM ADA SAMA SEKALI BEB, ANGGAP 0 BEB, TAPI KALAU ADA TRANSAKSI LAMA BEB SEBELUM FITUR INI BEB, PAKAI TOTAL LAMA BEB
+  let transaksiSebelum = dataPetty.filter(p=>String(p.tanggal) < String(tgl)).reduce((a,b)=>a + (b.jenis==='Masuk' ? Number(b.nominal||0) : -Number(b.nominal||0)),0);
+  return transaksiSebelum;
+}
+function isiSaldoAwalDariTanggal(){
+  let tgl = document.getElementById('tglSaldoAwal').value;
+  if(!tgl) return;
+  let awal = getSaldoAwalTanggal(tgl);
+  document.getElementById('saldoAwalInput').value = awal;
+  updateSaldoHarian();
+}
+function syncTanggalSaldoAwal(){
+  let tgl = document.getElementById('tgl').value;
+  if(tgl) document.getElementById('tglSaldoAwal').value = tgl;
+  isiSaldoAwalDariTanggal();
+}
+function simpanSaldoAwal(){
+  let tgl = document.getElementById('tglSaldoAwal').value;
+  if(!tgl) return alert('Pilih tanggal dulu beb!');
+  let nominal = Number(document.getElementById('saldoAwalInput').value||0);
+  dataSaldoAwal[tgl] = nominal;
+  saveSaldoAwal(dataSaldoAwal);
+  alert('Saldo Awal disimpan beb ✅\n\nTanggal: '+tgl+'\nSaldo Awal: '+fmtRp(nominal)+'\n\nBesok beb otomatis beb Saldo Awal beb = Saldo Akhir beb hari ini beb.');
+  updateSaldoHarian();
+  updateSummary();
+  renderTabel();
+}
+function updateSaldoHarian(){
+  let tgl = document.getElementById('tglSaldoAwal').value;
+  if(!tgl) return;
+  let awal = Number(document.getElementById('saldoAwalInput').value||0);
+  let masukHari = dataPetty.filter(p=>String(p.tanggal)===String(tgl) && p.jenis==='Masuk').reduce((a,b)=>a+Number(b.nominal||0),0);
+  let keluarHari = dataPetty.filter(p=>String(p.tanggal)===String(tgl) && p.jenis==='Keluar').reduce((a,b)=>a+Number(b.nominal||0),0);
+  let akhir = awal + masukHari - keluarHari;
+  document.getElementById('saldoAwalTxt').innerText = fmtRp(awal);
+  document.getElementById('masukHariTxt').innerText = fmtRp(masukHari);
+  document.getElementById('keluarHariTxt').innerText = fmtRp(keluarHari);
+  document.getElementById('saldoAkhirTxt').innerText = fmtRp(akhir);
+  document.getElementById('saldoAkhirTxt').style.color = akhir>=0 ? '#28a745' : '#dc3545';
+  let sudahDisimpan = dataSaldoAwal[tgl] !== undefined;
+  document.getElementById('infoSaldoAwal').innerText = sudahDisimpan ? '✅ Sudah disimpan beb' : '⚠️ Belum disimpan beb - ini beb perkiraan dari kemarin beb, klik Simpan Saldo Awal beb kalau beb udah bener beb';
+}
+function updateSummary(){
+  let masuk = dataPetty.filter(p=>p.jenis==='Masuk').reduce((a,b)=>a+Number(b.nominal||0),0);
+  let keluar = dataPetty.filter(p=>p.jenis==='Keluar').reduce((a,b)=>a+Number(b.nominal||0),0);
+  // BEB, SALDO TOTAL BEB = SALDO AWAL PERTAMA BEB + SEMUA MASUK - SEMUA KELUAR BEB
+  let tglPertama = Object.keys(dataSaldoAwal).sort()[0];
+  let saldoAwalPertama = tglPertama ? Number(dataSaldoAwal[tglPertama]||0) : 0;
+  // BEB, KALAU TRANSAKSI ADA SEBELUM SALDO AWAL PERTAMA BEB, HITUNG JUGA BEB BIAR GAK HILANG BEB
+  let transaksiSebelumAwal = tglPertama ? dataPetty.filter(p=>String(p.tanggal) < String(tglPertama)).reduce((a,b)=>a + (b.jenis==='Masuk' ? Number(b.nominal||0) : -Number(b.nominal||0)),0) : 0;
+  // BEB, KALAU GAK ADA SALDO AWAL SAMA SEKALI BEB, SALDO = MASUK - KELUAR BEB SEPERTI DULU BEB
+  let saldo = Object.keys(dataSaldoAwal).length ? (saldoAwalPertama + transaksiSebelumAwal + dataPetty.filter(p=>!tglPertama || String(p.tanggal) >= String(tglPertama)).reduce((a,b)=>a + (b.jenis==='Masuk' ? Number(b.nominal||0) : -Number(b.nominal||0)),0)) : (masuk - keluar);
+  document.getElementById('saldoPetty').innerText = fmtRp(saldo);
+  document.getElementById('saldoPetty').style.color = saldo>=0 ? '#28a745' : '#dc3545';
+  document.getElementById('sumMasuk').innerText = fmtRp(masuk);
+  document.getElementById('sumKeluar').innerText = fmtRp(keluar);
+  document.getElementById('sumTrx').innerText = dataPetty.length;
+  updateSaldoHarian();
+}
+function pilihJenis(jenis){
+  jenisAktif = jenis;
+  document.getElementById('jenis').value = jenis;
+  document.getElementById('btnMasuk').className = jenis==='Masuk' ? 'aktif-masuk' : '';
+  document.getElementById('btnKeluar').className = jenis==='Keluar' ? 'aktif-keluar' : '';
+  document.getElementById('btnSimpan').innerText = jenis==='Masuk' ? '💾 Simpan Petty Cash Masuk' : '💾 Simpan Petty Cash Keluar';
+  if(jenis==='Masuk') document.getElementById('kategori').value = 'Tambah Dana Kas Kecil';
+  else document.getElementById('kategori').value = 'Listrik';
+}
+function simpanPetty(){
+  let tgl = document.getElementById('tgl').value || new Date().toISOString().split('T')[0];
+  let jenis = document.getElementById('jenis').value;
+  let kategori = document.getElementById('kategori').value;
+  let nominal = Number(document.getElementById('nominal').value||0);
+  let ket = document.getElementById('ket').value || '';
+  if(nominal<=0) return alert('Nominal harus > 0 beb!');
+  // BEB, CEK SALDO HARI ITU BEB
+  let awalHari = getSaldoAwalTanggal(tgl);
+  let masukHari = dataPetty.filter(p=>String(p.tanggal)===String(tgl) && p.jenis==='Masuk').reduce((a,b)=>a+Number(b.nominal||0),0);
+  let keluarHari = dataPetty.filter(p=>String(p.tanggal)===String(tgl) && p.jenis==='Keluar').reduce((a,b)=>a+Number(b.nominal||0),0);
+  let saldoHari = awalHari + masukHari - keluarHari;
+  if(jenis==='Keluar' && nominal > saldoHari){
+    if(!confirm('Saldo Petty Cash hari ini tinggal '+fmtRp(saldoHari)+' beb (Saldo Awal '+fmtRp(awalHari)+'), mau keluar '+fmtRp(nominal)+' beb?\n\nSaldo akan jadi minus beb, lanjut beb?')) return;
+  }
+  dataPetty.push({tanggal:tgl, jenis:jenis, kategori:kategori, nominal:nominal, ket:ket, dibuat:new Date().toISOString()});
+  savePetty(dataPetty);
+  alert('Petty Cash disimpan beb ✅\n\n'+jenis+' - '+kategori+' - '+fmtRp(nominal));
+  resetForm();
+  loadData();
+  // BEB, BALIKIN TANGGAL KE TANGGAL TRANSAKSI TADI BEB BIAR BEB LIAT BEB SALDO HARI ITU BEB
+  document.getElementById('tglSaldoAwal').value = tgl;
+  document.getElementById('tgl').value = tgl;
+  isiSaldoAwalDariTanggal();
+}
+function resetForm(){
+  document.getElementById('nominal').value=0;
+  document.getElementById('ket').value='';
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let fj = document.getElementById('filterJenis').value;
+  let ft = document.getElementById('filterTanggal').value;
+  let list = dataPetty.filter(x=>{
+    if(fj && x.jenis!==fj) return false;
+    if(ft && String(x.tanggal)!==String(ft)) return false;
+    if(!kw) return true;
+    return String(x.kategori||'').toLowerCase().includes(kw) || String(x.ket||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodyPetty'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  list.sort((a,b)=> new Date(a.tanggal||0) - new Date(b.tanggal||0) || new Date(a.dibuat||0) - new Date(b.dibuat||0));
+  let semuaUrut = [...dataPetty].sort((a,b)=> new Date(a.tanggal||0)-new Date(b.tanggal||0) || new Date(a.dibuat||0)-new Date(b.dibuat||0));
+  let mapSaldo = new Map();
+  // BEB, HITUNG SALDO BERJALAN BEB PAKAI SALDO AWAL HARIAN BEB
+  let saldoBerjalan = 0;
+  let tanggalTerakhir = '';
+  semuaUrut.forEach(x=>{
+    if(String(x.tanggal) !== String(tanggalTerakhir)){
+      // BEB, GANTI HARI BEB, SALDO = SALDO AWAL HARI ITU BEB
+      saldoBerjalan = getSaldoAwalTanggal(x.tanggal);
+      tanggalTerakhir = String(x.tanggal);
+    }
+    saldoBerjalan += x.jenis==='Masuk' ? Number(x.nominal||0) : -Number(x.nominal||0);
+    mapSaldo.set(x, saldoBerjalan);
+  });
+  list.forEach((x,idx)=>{
+    let idxAsli = dataPetty.indexOf(x);
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td class="center">${x.tanggal}</td>
+      <td class="center">${x.jenis==='Masuk' ? '<span style="color:#28a745;font-weight:bold">⬆️ MASUK</span>' : '<span style="color:#dc3545;font-weight:bold">⬇️ KELUAR</span>'}</td>
+      <td>${x.kategori}</td>
+      <td>${x.ket||'-'}</td>
+      <td class="num" style="color:#28a745">${x.jenis==='Masuk'?fmtRp(x.nominal):'-'}</td>
+      <td class="num" style="color:#dc3545">${x.jenis==='Keluar'?fmtRp(x.nominal):'-'}</td>
+      <td class="num" style="font-weight:bold">${fmtRp(mapSaldo.get(x)||0)}</td>
+      <td class="center"><button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusPetty(${idxAsli})">🗑️</button></td>
+    </tr>`;
+  });
+}
+function hapusPetty(idxAsli){
+  let x = dataPetty[idxAsli];
+  if(!x) return;
+  if(!confirm('Hapus petty cash ini beb?\n\n'+x.jenis+' - '+x.kategori+' - '+fmtRp(x.nominal))) return;
+  dataPetty.splice(idxAsli,1);
+  savePetty(dataPetty);
+  loadData();
+  alert('Petty Cash dihapus beb ✅');
+}
+function exportPetty(){
+  let data={pettycash:loadPetty(), saldo_awal:loadSaldoAwal(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pettycash-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.simpanPetty=simpanPetty; window.resetForm=resetForm; window.pilihJenis=pilihJenis; window.hapusPetty=hapusPetty; window.exportPetty=exportPetty; window.renderTabel=renderTabel;
+window.simpanSaldoAwal=simpanSaldoAwal; window.isiSaldoAwalDariTanggal=isiSaldoAwalDariTanggal; window.syncTanggalSaldoAwal=syncTanggalSaldoAwal;
+loadData();
+</script>
+</body>
+</html>

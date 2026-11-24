@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Supplier - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form textarea,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.form textarea{height:60px;resize:vertical}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input{padding:6px;border:1px solid #999;width:240px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:140px}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>🏭 Supplier</h2><p>Data supplier / toko grosir beb - nyambung ke Beli beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-ungu" onclick="window.location='beli.html'">🛒 Beli / Stok Masuk</button>
+    <button class="btn btn-biru" onclick="window.location='kartustok.html'">📒 Kartu Stok</button>
+    <button class="btn btn-kuning" onclick="exportSupplier()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card"><span>Total Supplier</span><b id="sumSupplier">0</b></div>
+  <div class="card"><span>Total Pembelian</span><b id="sumBeli">Rp 0</b></div>
+  <div class="card"><span>Total Transaksi Beli</span><b id="sumTrx">0</b></div>
+</div>
+
+<div class="wrap">
+  <!-- BEB, FORM SUPPLIER BEB -->
+  <div class="form">
+    <h3 id="judulForm">➕ Tambah Supplier Beb</h3>
+    <input type="hidden" id="editIdx" value="-1">
+    <label>Kode Supplier</label>
+    <input id="kode" placeholder="SUP-001 / otomatis kalau kosong beb">
+    <label>Nama Supplier / Toko *</label>
+    <input id="nama" placeholder="Contoh: Grosir Jaya Abadi beb">
+    <label>Nama Kontak / Owner</label>
+    <input id="kontak" placeholder="Nama orang nya beb">
+    <label>No HP / WA</label>
+    <input id="telp" placeholder="0812xxxx beb">
+    <label>Alamat</label>
+    <textarea id="alamat" placeholder="Alamat toko beb..."></textarea>
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Langganan ban beb">
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-hijau" style="flex:1" id="btnSimpan" onclick="simpanSupplier()">💾 Simpan</button>
+      <button class="btn" onclick="resetForm()">Reset</button>
+    </div>
+    <p style="font-size:11px;color:#555">Beb, habis simpan beb, supplier nya beb langsung muncul beb di daftar beb + bisa dipilih beb di halaman <b>Beli</b> beb.</p>
+  </div>
+
+  <!-- BEB, DAFTAR SUPPLIER BEB -->
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Daftar Supplier Beb</b>
+      <input id="cari" placeholder="Cari kode / nama / telp / alamat..." oninput="renderTabel()">
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Kode</th><th>Nama Supplier</th><th>Kontak</th><th>No HP / WA</th><th>Alamat</th><th>Total Beli</th><th>Trx</th><th>Aksi</th></tr></thead>
+      <tbody id="tbodySupplier"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada supplier beb. Tambah dulu beb di kiri beb.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_SUPPLIER='vfp_supplier', KEY_BELI='vfp_pembelian';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadSupplier(){ try{return JSON.parse(localStorage.getItem(KEY_SUPPLIER))||[]}catch(e){return[]} }
+function loadBeli(){ try{return JSON.parse(localStorage.getItem(KEY_BELI))||[]}catch(e){return[]} }
+function saveSupplier(a){ localStorage.setItem(KEY_SUPPLIER, JSON.stringify(a)); }
+
+let dataSupplier=[], dataBeli=[];
+
+function loadData(){
+  dataSupplier = loadSupplier();
+  dataBeli = loadBeli();
+  document.getElementById('sumSupplier').innerText = dataSupplier.length;
+  document.getElementById('sumBeli').innerText = fmtRp(dataBeli.reduce((a,b)=>a+Number(b.total||0),0));
+  document.getElementById('sumTrx').innerText = dataBeli.length;
+  renderTabel();
+}
+function buatKode(){
+  return 'SUP-' + String(dataSupplier.length+1).padStart(3,'0');
+}
+function simpanSupplier(){
+  let editIdx = Number(document.getElementById('editIdx').value);
+  let kode = document.getElementById('kode').value.trim() || buatKode();
+  let nama = document.getElementById('nama').value.trim();
+  if(!nama) return alert('Nama supplier wajib diisi beb!');
+  let kontak = document.getElementById('kontak').value.trim();
+  let telp = document.getElementById('telp').value.trim();
+  let alamat = document.getElementById('alamat').value.trim();
+  let ket = document.getElementById('ket').value.trim();
+
+  // BEB, CEK KODE DUPLIKAT BEB, KECUALI LAGI EDIT DIRI SENDIRI BEB
+  let duplikat = dataSupplier.findIndex((s,i)=>String(s.kode)===String(kode) && i!==editIdx);
+  if(duplikat>=0) return alert('Kode sudah dipakai beb, ganti kode lain beb!');
+
+  let obj = {kode:kode, nama:nama, kontak:kontak, telp:telp, alamat:alamat, ket:ket, dibuat:new Date().toISOString()};
+  if(editIdx>=0){
+    dataSupplier[editIdx] = obj;
+    alert('Supplier diupdate beb ✅');
+  }else{
+    dataSupplier.push(obj);
+    alert('Supplier ditambah beb ✅\n\n'+nama+' ('+kode+')');
+  }
+  saveSupplier(dataSupplier);
+  resetForm();
+  loadData();
+}
+function editSupplier(idxAsli){
+  let s = dataSupplier[idxAsli];
+  if(!s) return;
+  document.getElementById('editIdx').value = idxAsli;
+  document.getElementById('kode').value = s.kode||'';
+  document.getElementById('nama').value = s.nama||'';
+  document.getElementById('kontak').value = s.kontak||'';
+  document.getElementById('telp').value = s.telp||'';
+  document.getElementById('alamat').value = s.alamat||'';
+  document.getElementById('ket').value = s.ket||'';
+  document.getElementById('judulForm').innerText = '✏️ Edit Supplier Beb';
+  document.getElementById('btnSimpan').innerText = '💾 Update';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function hapusSupplier(idxAsli){
+  let s = dataSupplier[idxAsli];
+  if(!s) return;
+  // BEB, CEK APAKAH SUPPLIER INI PERNAH DIPAKAI DI PEMBELIAN BEB
+  let dipakai = dataBeli.filter(b=>String(b.supplier)===String(s.nama) || String(b.supplier)===String(s.kode)).length;
+  let pesan = 'Hapus supplier ini beb?\n\n'+s.nama+' ('+s.kode+')';
+  if(dipakai>0) pesan += '\n\n⚠️ Supplier ini sudah dipakai '+dipakai+'x di Pembelian beb. Riwayat pembelian TIDAK akan kehapus beb, hanya data supplier nya beb aja beb yang hilang beb.';
+  if(!confirm(pesan)) return;
+  dataSupplier.splice(idxAsli,1);
+  saveSupplier(dataSupplier);
+  loadData();
+  alert('Supplier dihapus beb ✅');
+}
+function resetForm(){
+  document.getElementById('editIdx').value = -1;
+  document.getElementById('kode').value = '';
+  document.getElementById('nama').value = '';
+  document.getElementById('kontak').value = '';
+  document.getElementById('telp').value = '';
+  document.getElementById('alamat').value = '';
+  document.getElementById('ket').value = '';
+  document.getElementById('judulForm').innerText = '➕ Tambah Supplier Beb';
+  document.getElementById('btnSimpan').innerText = '💾 Simpan';
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let list = dataSupplier.filter(x=>{
+    if(!kw) return true;
+    return String(x.kode||'').toLowerCase().includes(kw) || String(x.nama||'').toLowerCase().includes(kw) || String(x.telp||'').toLowerCase().includes(kw) || String(x.alamat||'').toLowerCase().includes(kw) || String(x.kontak||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodySupplier'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  // BEB, URUT SESUAI NAMA BEB, A-Z BEB
+  list.sort((a,b)=> String(a.nama||'').localeCompare(String(b.nama||'')));
+  list.forEach((x,idx)=>{
+    let idxAsli = dataSupplier.indexOf(x);
+    // BEB, HITUNG TOTAL BELI PER SUPPLIER BEB DARI vfp_pembelian BEB
+    let beliSupplier = dataBeli.filter(b=>String(b.supplier)===String(x.nama) || String(b.supplier)===String(x.kode));
+    let totalBeli = beliSupplier.reduce((a,b)=>a+Number(b.total||0),0);
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td class="center"><b>${x.kode}</b></td>
+      <td><b>${x.nama}</b><br><span style="font-size:11px;color:#555">${x.ket||''}</span></td>
+      <td>${x.kontak||'-'}</td>
+      <td>${x.telp ? `<a href="https://wa.me/${String(x.telp).replace(/[^0-9]/g,'')}" target="_blank">${x.telp}</a>` : '-'}</td>
+      <td>${x.alamat||'-'}</td>
+      <td class="num" style="font-weight:bold">${fmtRp(totalBeli)}</td>
+      <td class="center">${beliSupplier.length}</td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-biru" style="padding:4px 8px;" onclick="editSupplier(${idxAsli})">✏️</button>
+        <button class="btn" style="padding:4px 8px;" onclick="pilihSupplier(${idxAsli})">🛒 Beli</button>
+        <button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusSupplier(${idxAsli})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+}
+function pilihSupplier(idxAsli){
+  let s = dataSupplier[idxAsli];
+  if(!s) return;
+  // BEB, SIMPAN PILIHAN BEB BIAR DI BELI.HTML LANGSUNG KEISI BEB
+  localStorage.setItem('vfp_supplier_terpilih', s.nama);
+  window.location = 'beli.html';
+}
+function exportSupplier(){
+  let data={supplier:loadSupplier(), pembelian:loadBeli(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='supplier-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.simpanSupplier=simpanSupplier; window.editSupplier=editSupplier; window.hapusSupplier=hapusSupplier;
+window.resetForm=resetForm; window.pilihSupplier=pilihSupplier; window.exportSupplier=exportSupplier; window.renderTabel=renderTabel;
+loadData();
+</script>
+</body>
+</html>

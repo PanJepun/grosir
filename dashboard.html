@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - BTS Back To School</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#FFC107;--hover:#FF3B30;--navbar-height:60px}
+*{box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{margin:0;background:#000;color:#fff;min-height:100vh;overflow-y:auto;padding-top:var(--navbar-height)}
+.navbar{background:#1a1a1a;padding:10px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent);height:60px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:45px;width:auto}
+.brand-text{color:var(--accent);font-size:18px;font-weight:700;letter-spacing:1px;text-shadow:0 0 10px var(--accent);line-height:1.2}
+.menu{display:flex;list-style:none;margin:0;padding:0;gap:12px}
+.menu>li{position:relative}
+.menu>li>a{display:block;padding:10px 22px;color:#fff;text-decoration:none;font-weight:600;font-size:13px;background:#333;border:1px solid #555;border-radius:50px;transition:0.3s}
+.menu>li>a:hover{background:var(--hover);color:#fff;border-color:var(--accent);box-shadow:0 0 15px var(--accent)}
+.dropdown{display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);padding-top:10px;background:transparent;min-width:200px;z-index:1000}
+.dropdown-inner{background:#1f1f1f;border:1px solid var(--accent);border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,0.5);padding:8px 0}
+.dropdown a{display:block;padding:10px 18px;color:#fff;text-decoration:none;font-size:13px;transition:0.2s}
+.dropdown a:hover{background:var(--accent);color:#000}
+.menu li:hover .dropdown{display:block}
+.dashboard{padding:20px 40px}
+.welcome{font-size:20px;font-weight:700;margin-bottom:5px;color:var(--accent);text-shadow:0 0 10px var(--accent)}
+.alamat{font-size:13px;color:#aaa;margin-bottom:20px}
+
+/* BEB, INI VIDEO NYA BEB, GANTI SLIDER FOTO BEB */
+.video-hero{position:relative;width:100%;height:420px;border-radius:12px;overflow:hidden;border:2px solid var(--accent);box-shadow:0 0 20px var(--accent);background:#111}
+.video-hero video{width:100%;height:100%;object-fit:cover;display:block}
+.video-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75),rgba(0,0,0,0.15) 55%,rgba(0,0,0,0.25));display:flex;flex-direction:column;justify-content:flex-end;padding:22px;pointer-events:none}
+.video-overlay h2{margin:0;font-size:30px;text-shadow:0 0 15px #000}
+.video-overlay p{margin:6px 0 0;color:#eee;font-size:13px}
+.video-controls{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:5}
+.video-controls button{background:rgba(0,0,0,0.6);color:#fff;border:1px solid #fff;border-radius:20px;padding:7px 12px;cursor:pointer;font-size:12px;font-weight:700}
+.video-controls button.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.video-tabs{position:absolute;bottom:14px;right:14px;display:flex;gap:8px;z-index:5}
+.video-tabs button{background:rgba(0,0,0,0.6);color:#fff;border:1px solid #555;border-radius:20px;padding:7px 12px;cursor:pointer;font-size:12px}
+.video-tabs button.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700}
+
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px}
+.kartu{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:14px;cursor:pointer}
+.kartu:hover{border-color:var(--accent)}
+.kartu span{font-size:11px;color:#aaa}
+.kartu b{font-size:18px;display:block;margin-top:4px;color:#fff}
+.kartu small{font-size:11px;color:#888}
+.k-omset b{color:#FFC107}.k-laba b{color:#28a745}.k-piutang b{color:#FF3B30}.k-hutang b{color:#ff9800}.k-stok b{color:#00bfff}
+.menu-bawah{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.menu-bawah button{background:#1a1a1a;color:#fff;border:1px solid #555;border-radius:12px;padding:14px;cursor:pointer;font-weight:700;font-size:13px;text-align:left}
+.menu-bawah button:hover{border-color:var(--accent);background:#222}
+.menu-bawah button small{display:block;font-weight:400;color:#aaa;font-size:11px;margin-top:3px}
+@media(max-width:900px){.navbar{padding:10px 14px;flex-wrap:wrap;height:auto}.menu{flex-wrap:wrap}.dashboard{padding:14px}.cards{grid-template-columns:repeat(2,1fr)}.menu-bawah{grid-template-columns:repeat(2,1fr)}.video-hero{height:300px}.video-overlay h2{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="navbar">
+  <div class="brand"><img src="logobts.jpeg" alt="Logo BTS"><div class="brand-text">SWALAYAN PAN JEPUN</div></div>
+  <ul class="menu">
+    <li><a href="#">MASTER</a><div class="dropdown"><div class="dropdown-inner">
+      <a href="mstrbrg.html">📦 Master Barang</a>
+      <a href="customer.html">👤 Master Customer</a>
+      <a href="supplier.html">🚚 Master Supplier</a>
+    </div></div></li>
+    <li><a href="#">TRANSAKSI</a><div class="dropdown"><div class="dropdown-inner">
+      <a href="jualcash.html">🛒 Kasir Cash</a>
+      <a href="jualkredit.html">🛒 Kasir Kredit</a>
+      <a href="beli.html">📥 Pembelian</a>
+    </div></div></li>
+    <li><a href="#">LAPORAN</a><div class="dropdown"><div class="dropdown-inner">
+      <a href="laporan.html">🧾 Semua Transaksi / Laporan</a>
+      <a href="labarugi.html">💰 Laba Rugi</a>
+      <a href="piutang.html">📒 Piutang</a>
+      <a href="hutang.html">📒 Hutang</a>
+      <a href="kartustok.html">📦 Kartu Stok</a>
+    </div></div></li>
+    <li><a href="pettycash.html">📄 Petty Cash</a></li>
+    <li><a href="#">TOOLS</a><div class="dropdown"><div class="dropdown-inner">
+      <a href="User.html">🧑‍💼 USER</a>
+      <a href="backup.html">☁️ Backup & Restore</a>
+      <a href="#" onclick="bukaModalNobil()">⚙️ Setup Bill</a>
+    </div></div></li>
+    <li><a href="logout.html">📄 LOGOUT</a></li>
+  </ul>
+</div>
+
+<div class="dashboard">
+  <div class="welcome">Selamat Datang, di SWALAYAN PAN JEPUN</div>
+  <div class="alamat">Jln. SOekarno Hatta, Gorontalo</div>
+
+  <!-- BEB, VIDEO BELANJA DI SUPERMARKET BEB -->
+  <div class="video-hero">
+    <video id="videoBelanja" autoplay muted loop playsinline preload="metadata"
+      poster="https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=2070&auto=format&fit=crop">
+      <source id="videoSource" src="https://videos.pexels.com/video-files/3969517/3969517-hd_1920_1080_25fps.mp4" type="video/mp4">
+      Browser beb tidak support video beb.
+    </video>
+    <div class="video-controls">
+      <button id="btnSuara" onclick="toggleSuara()">🔇 Suara: Mati</button>
+      <button onclick="togglePlay()">⏸️ Pause / ▶️ Play</button>
+    </div>
+    <div class="video-overlay">
+      <h2 id="judulVideo">🛒 Belanja di Supermarket</h2>
+      <p id="descVideo">Orang dorong troli, milih barang, bayar di kasir beb - Sistem POS Tercepat & Akurat beb</p>
+    </div>
+    <div class="video-tabs">
+      <button class="active" onclick="gantiVideo(0,this)">🛒 Troli Belanja</button>
+      <button onclick="gantiVideo(1,this)">🥦 Pilih Buah / Sayur</button>
+      <button onclick="gantiVideo(2,this)">💳 Bayar di Kasir</button>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="kartu k-omset" onclick="window.location='laporan.html'"><span>Omset Hari Ini</span><b id="omsetHari">Rp 0</b><small id="trxHari">0 transaksi</small></div>
+    <div class="kartu k-laba" onclick="window.location='laporan.html'"><span>Laba Hari Ini</span><b id="labaHari">Rp 0</b><small>Omset - HPP</small></div>
+    <div class="kartu k-piutang" onclick="window.location='piutang.html'"><span>Piutang Belum Lunas</span><b id="totalPiutang">Rp 0</b><small id="jmlPiutang">0 faktur KREDIT / SIGN</small></div>
+    <div class="kartu k-hutang" onclick="window.location='hutang.html'"><span>Hutang Belum Lunas</span><b id="totalHutang">Rp 0</b><small id="jmlHutang">0 hutang</small></div>
+    <div class="kartu k-stok" onclick="window.location='mstrbrg.html'"><span>Nilai Stok (HPP)</span><b id="nilaiStok">Rp 0</b><small id="jmlBarang">0 barang</small></div>
+  </div>
+
+  <div class="menu-bawah">
+    <button onclick="window.location='mstrbrg.html'">📦 MASTER BARANG<small>Stok • Harga • Foto</small></button>
+    <button onclick="window.location='jualcash.html'">🛒 KASIR<small>Cash • QRIS • Kredit • Sign</small></button>
+    <button onclick="window.location='hutang.html'">💳 HUTANG<small>Hutang ke Supplier</small></button>
+    <button onclick="window.location='piutang.html'">🤝 PIUTANG<small>Pelanggan KREDIT / SIGN</small></button>
+    <button onclick="window.location='laporan.html'">🧾 LAPORAN<small>Semua Transaksi</small></button>
+    <button onclick="window.location='kartustok.html'">📦 KARTU STOK<small>Keluar / Masuk</small></button>
+    <button onclick="window.location='backup.html'">🧰 TOOLS - BACKUP<small>Backup & Restore</small></button>
+    <button onclick="bukaModalNobil()">⚙️ SETUP BILL<small>No Bill berikutnya</small></button>
+  </div>
+</div>
+
+<script>
+// BEB, DAFTAR VIDEO BELANJA BEB - GANTI DISINI AJA BEB KALAU MAU VIDEO LAIN BEB
+const daftarVideo=[
+  {src:'https://videos.pexels.com/video-files/3969517/3969517-hd_1920_1080_25fps.mp4', judul:'🛒 Belanja di Supermarket', desc:'Orang dorong troli, milih barang, bayar di kasir beb - Sistem POS Tercepat & Akurat beb', poster:'https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=2070&auto=format&fit=crop'},
+  {src:'https://videos.pexels.com/video-files/3969452/3969452-hd_1920_1080_25fps.mp4', judul:'🥦 Pilih Buah & Sayur Segar', desc:'Pelanggan milih buah / sayur di rak supermarket beb - Manajemen Stok Otomatis beb', poster:'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2070&auto=format&fit=crop'},
+  {src:'https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4', judul:'💳 Bayar di Kasir', desc:'Antrian kasir, scan barang, bayar cepat beb - Layanan Pelanggan Terbaik beb', poster:'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop'}
+];
+let videoEl=document.getElementById('videoBelanja');
+function gantiVideo(idx,btn){
+  document.querySelectorAll('.video-tabs button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  let v=daftarVideo[idx];
+  document.getElementById('judulVideo').innerText=v.judul;
+  document.getElementById('descVideo').innerText=v.desc;
+  videoEl.poster=v.poster;
+  document.getElementById('videoSource').src=v.src;
+  videoEl.load(); videoEl.play().catch(()=>{});
+}
+function toggleSuara(){
+  videoEl.muted=!videoEl.muted;
+  document.getElementById('btnSuara').innerText=videoEl.muted?'🔇 Suara: Mati':'🔊 Suara: Hidup';
+}
+function togglePlay(){
+  if(videoEl.paused){videoEl.play();} else {videoEl.pause();}
+}
+// BEB, RINGKASAN DARI DATA ASLI BEB
+function fmtRp(n){return 'Rp '+Number(n||0).toLocaleString('id-ID');}
+function loadJSON(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
+function loadRingkasan(){
+  let barang=loadJSON('tbl_mstrbrg'); let trx=loadJSON('vfp_transaksi'); let hutang=loadJSON('vfp_hutang'); let piutangManual=loadJSON('vfp_piutang');
+  let hari=new Date().toISOString().split('T')[0];
+  let trxHari=trx.filter(t=>t.waktu && new Date(t.waktu).toISOString().split('T')[0]===hari);
+  let omsetHari=trxHari.reduce((a,b)=>a+Number(b.total||0),0);
+  let labaHari=trxHari.reduce((a,b)=>a+Number(b.laba||0),0);
+  let piutangTrx=trx.filter(t=>Number((t.pembayaran&&t.pembayaran.piutang)||0)>0);
+  let totalPiutang=piutangTrx.reduce((a,b)=>a+Number(b.pembayaran.piutang||0),0)+piutangManual.filter(p=>p.status!=='LUNAS').reduce((a,b)=>a+Number(b.sisa||b.total||0),0);
+  let totalHutang=hutang.filter(h=>h.status!=='LUNAS').reduce((a,b)=>a+Number(b.sisa||b.total||0),0);
+  let nilaiStok=barang.reduce((a,b)=>a+(Number(b.hpp||0)*Number(b.jmlbrg||0)),0);
+  document.getElementById('omsetHari').innerText=fmtRp(omsetHari);
+  document.getElementById('trxHari').innerText=trxHari.length+' transaksi';
+  document.getElementById('labaHari').innerText=fmtRp(labaHari);
+  document.getElementById('totalPiutang').innerText=fmtRp(totalPiutang);
+  document.getElementById('jmlPiutang').innerText=piutangTrx.length+' faktur KREDIT / SIGN';
+  document.getElementById('totalHutang').innerText=fmtRp(totalHutang);
+  document.getElementById('jmlHutang').innerText=hutang.filter(h=>h.status!=='LUNAS').length+' hutang';
+  document.getElementById('nilaiStok').innerText=fmtRp(nilaiStok);
+  document.getElementById('jmlBarang').innerText=barang.length+' barang';
+}
+loadRingkasan(); setInterval(loadRingkasan,10000);
+</script>
+
+<div id="modalNobil" class="modal"><div class="modal-content"><span class="close" onclick="tutupModal()">&times;</span>
+<h3>SETUP NOMOR BILL</h3><label>No Bill Awal:</label><input type="number" id="noAwal"><button onclick="simpanNo()">SIMPAN</button>
+<div class="info">* No Bill berikutnya: <span id="previewBill">B00001</span></div></div></div>
+<style>
+.modal{display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px)}
+.modal-content{background:#111;border:2px solid #00ff00;margin:15% auto;padding:20px;width:400px;border-radius:8px;color:#fff}
+.modal-content h3{color:#00ff00;text-align:center;border-bottom:1px solid #00ff00;padding-bottom:10px}
+.modal-content input{padding:8px;width:180px;background:#222;color:#fff;border:2px solid #00ff00}
+.modal-content button{padding:8px 15px;background:#28a745;color:#fff;border:none;font-weight:bold;cursor:pointer}
+.close{color:#aaa;float:right;font-size:28px;font-weight:bold;cursor:pointer}
+.close:hover{color:#00ff00}
+.info{margin-top:15px;font-size:12px;color:#aaa}
+</style>
+<script>
+function bukaModalNobil(){document.getElementById('modalNobil').style.display='block';let noSekarang=Number(localStorage.getItem('noBillSekarang'))||1;document.getElementById('noAwal').value=noSekarang;updatePreview();}
+function tutupModal(){document.getElementById('modalNobil').style.display='none';}
+function simpanNo(){let no=Number(document.getElementById('noAwal').value)||1;localStorage.setItem('noBillSekarang',no);alert('No Bill disimpan: B'+String(no).padStart(5,'0'));updatePreview();}
+function updatePreview(){let no=Number(document.getElementById('noAwal').value)||1;document.getElementById('previewBill').innerText='B'+String(no).padStart(5,'0');}
+(function(){let waktuMaksimalIdle=5*60*1000;let timerIdle;function eksekusiLogoutOtomatis(){alert("Sesi Anda telah berakhir karena tidak ada aktivitas selama 5 menit.");sessionStorage.removeItem('userLogon');window.location.href='index.html';}function resetTimerAktivitas(){clearTimeout(timerIdle);timerIdle=setTimeout(eksekusiLogoutOtomatis,waktuMaksimalIdle);}['mousedown','mousemove','keypress','scroll','touchstart'].forEach(n=>{document.addEventListener(n,resetTimerAktivitas,true);});resetTimerAktivitas();})();
+</script>
+</body>
+</html>

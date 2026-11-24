@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Hutang - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form select,.form textarea{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input,.list-head select{padding:6px;border:1px solid #999}
+.list-head input{width:220px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+tr.jatuh-tempo td{background:#ffe0e0!important}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:150px}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff}
+.b-belum{background:#dc3545} .b-lunas{background:#28a745} .b-sebagian{background:#fd7e14}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:12px}
+.modal.show{display:flex}
+.modal-box{background:#fff;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;border-radius:8px;overflow:hidden}
+.modal-head{padding:12px;display:flex;justify-content:space-between;align-items:center;background:#2a7abf;color:#fff}
+.modal-head h3{margin:0;font-size:15px}
+.modal-head button{background:#fff;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;border-radius:4px}
+.modal-body{padding:14px;overflow:auto}
+.modal-body label{font-size:11px;color:#555;display:block;margin-top:8px}
+.modal-body input,.modal-body select{width:100%;padding:8px;border:1px solid #999;margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>💳 Hutang</h2><p>Hutang pembelian Kredit beb - dari Beli beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-orange" onclick="window.location='beli.html'">🛒 Beli / Stok Masuk</button>
+    <button class="btn btn-ungu" onclick="window.location='supplier.html'">🏭 Supplier</button>
+    <button class="btn btn-biru" onclick="window.location='kartustok.html'">📒 Kartu Stok</button>
+    <button class="btn btn-kuning" onclick="exportHutang()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card"><span>Total Hutang Belum Lunas</span><b id="sumBelum" style="color:#dc3545">Rp 0</b></div>
+  <div class="card"><span>Total Hutang (Semua)</span><b id="sumTotal">Rp 0</b></div>
+  <div class="card"><span>Sudah Dibayar (DP + Cicil)</span><b id="sumBayar" style="color:#28a745">Rp 0</b></div>
+  <div class="card"><span>Jumlah Nota Hutang</span><b id="sumNota">0</b></div>
+  <div class="card"><span>Jatuh Tempo / Lewat</span><b id="sumJatuh" style="color:#dc3545">0</b></div>
+</div>
+
+<div class="wrap">
+  <!-- BEB, FORM TAMBAH HUTANG MANUAL BEB -->
+  <div class="form">
+    <h3>➕ Tambah Hutang Manual Beb</h3>
+    <p style="font-size:11px;color:#555;margin:0">Beb, biasanya beb hutang beb otomatis beb dari Beli Kredit beb. Ini beb kalau beb mau catat beb hutang lama beb.</p>
+    <label>No Bukti / No Nota</label>
+    <input id="noBukti" placeholder="H-00001 / B-00001 beb">
+    <label>Tanggal Hutang</label>
+    <input id="tgl" type="date">
+    <label>Supplier</label>
+    <select id="supplier"><option value="">-- Pilih Supplier Beb --</option></select>
+    <label>Total Hutang</label>
+    <input id="total" type="number" min="0" value="0" oninput="hitungSisaManual()">
+    <label>DP / Sudah Bayar</label>
+    <input id="dp" type="number" min="0" value="0" oninput="hitungSisaManual()">
+    <div style="margin-top:6px;text-align:right">Sisa: <b id="sisaTxt">Rp 0</b></div>
+    <label>Jatuh Tempo</label>
+    <input id="jatuhTempo" type="date">
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Hutang beli ban beb">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-merah" style="flex:1" onclick="simpanHutangManual()">💾 Simpan Hutang</button>
+      <button class="btn" onclick="resetForm()">Reset</button>
+    </div>
+  </div>
+
+  <!-- BEB, DAFTAR HUTANG BEB -->
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Daftar Hutang Beb</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input id="cari" placeholder="Cari supplier / no bukti..." oninput="renderTabel()">
+        <select id="filterStatus" onchange="renderTabel()"><option value="">Semua Status</option><option value="Belum Lunas">Belum Lunas</option><option value="Sebagian">Sebagian / Cicil</option><option value="Lunas">Lunas</option></select>
+      </div>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Tanggal</th><th>No Bukti</th><th>Supplier</th><th>Total</th><th>Sudah Bayar</th><th>Sisa</th><th>Jatuh Tempo</th><th>Status</th><th>Bayar</th><th>Hapus</th></tr></thead>
+      <tbody id="tbodyHutang"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada hutang beb. Beli Kredit dulu beb di Beli beb.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BEB, MODAL BAYAR HUTANG BEB -->
+<div id="modalBayar" class="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>💰 Bayar Hutang Beb</h3><button onclick="tutupModalBayar()">✖</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="bayarIdx" value="-1">
+      <div>No Bukti: <b id="bayarNoBukti">-</b></div>
+      <div>Supplier: <b id="bayarSupplier">-</b></div>
+      <div style="margin-top:8px">Total Hutang: <b id="bayarTotal">Rp 0</b></div>
+      <div>Sudah Bayar: <b id="bayarSudah">Rp 0</b></div>
+      <div style="font-size:16px">Sisa: <b id="bayarSisa" style="color:#dc3545">Rp 0</b></div>
+      <label>Nominal Bayar *</label>
+      <input id="nominalBayar" type="number" min="1" placeholder="Masukkan nominal beb...">
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn btn-abu" onclick="isiNominalSisa()">Bayar Lunas (Sisa)</button>
+        <button class="btn btn-abu" onclick="isiNominalSetengah()">Bayar Setengah</button>
+      </div>
+      <label>Tanggal Bayar</label>
+      <input id="tglBayar" type="date">
+      <label>Keterangan Bayar</label>
+      <input id="ketBayar" placeholder="Contoh: Cicil ke-1 beb">
+      <div style="margin-top:10px;font-size:11px;color:#555">Beb, riwayat bayar beb tersimpan beb di bawah beb.</div>
+      <div id="riwayatBayar" style="margin-top:8px;border:1px solid #ddd;padding:8px;max-height:120px;overflow:auto;font-size:11px"></div>
+      <button class="btn btn-hijau" style="width:100%;margin-top:10px;padding:10px" onclick="simpanBayar()">✅ Simpan Pembayaran</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_HUTANG='vfp_hutang', KEY_SUPPLIER='vfp_supplier', KEY_BELI='vfp_pembelian';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadHutang(){ try{return JSON.parse(localStorage.getItem(KEY_HUTANG))||[]}catch(e){return[]} }
+function loadSupplier(){ try{return JSON.parse(localStorage.getItem(KEY_SUPPLIER))||[]}catch(e){return[]} }
+function loadBeli(){ try{return JSON.parse(localStorage.getItem(KEY_BELI))||[]}catch(e){return[]} }
+function saveHutang(a){ localStorage.setItem(KEY_HUTANG, JSON.stringify(a)); }
+
+let dataHutang=[], dataSupplier=[];
+
+function loadData(){
+  dataHutang = loadHutang();
+  dataSupplier = loadSupplier();
+  let sel = document.getElementById('supplier');
+  let cur = sel.value;
+  sel.innerHTML = '<option value="">-- Pilih Supplier Beb --</option>' + [...dataSupplier].sort((a,b)=>String(a.nama||'').localeCompare(String(b.nama||''))).map(s=>`<option value="${s.nama}">${s.nama} (${s.kode})</option>`).join('');
+  sel.value = cur;
+  if(!document.getElementById('tgl').value) document.getElementById('tgl').value = new Date().toISOString().split('T')[0];
+  if(!document.getElementById('noBukti').value) document.getElementById('noBukti').value = 'H-' + String(dataHutang.length+1).padStart(5,'0');
+  // BEB, HITUNG SUMMARY BEB
+  let total = dataHutang.reduce((a,b)=>a+Number(b.total||0),0);
+  let sudah = dataHutang.reduce((a,b)=>a+Number(b.dp||0)+Number((b.riwayatBayar||[]).reduce((x,y)=>x+Number(y.nominal||0),0)),0);
+  // BEB, SUDAH BAYAR BEB = TOTAL - SISA BEB LEBIH AMAN BEB
+  let sisaTotal = dataHutang.filter(h=>h.status!=='Lunas').reduce((a,b)=>a+Number(b.sisa||0),0);
+  let sudah2 = total - dataHutang.reduce((a,b)=>a+Number(b.sisa||0),0);
+  let hariIni = new Date().toISOString().split('T')[0];
+  let jatuh = dataHutang.filter(h=>h.status!=='Lunas' && h.jatuhTempo && h.jatuhTempo < hariIni).length;
+  document.getElementById('sumBelum').innerText = fmtRp(sisaTotal);
+  document.getElementById('sumTotal').innerText = fmtRp(total);
+  document.getElementById('sumBayar').innerText = fmtRp(sudah2);
+  document.getElementById('sumNota').innerText = dataHutang.length;
+  document.getElementById('sumJatuh').innerText = jatuh;
+  renderTabel();
+  hitungSisaManual();
+}
+function hitungSisaManual(){
+  let total = Number(document.getElementById('total').value||0);
+  let dp = Number(document.getElementById('dp').value||0);
+  document.getElementById('sisaTxt').innerText = fmtRp(Math.max(0, total-dp));
+}
+function simpanHutangManual(){
+  let noBukti = document.getElementById('noBukti').value.trim() || ('H-' + String(dataHutang.length+1).padStart(5,'0'));
+  let tgl = document.getElementById('tgl').value || new Date().toISOString().split('T')[0];
+  let supplier = document.getElementById('supplier').value || '-';
+  let total = Number(document.getElementById('total').value||0);
+  let dp = Number(document.getElementById('dp').value||0);
+  let jt = document.getElementById('jatuhTempo').value || '';
+  let ket = document.getElementById('ket').value || '';
+  if(total<=0) return alert('Total hutang harus > 0 beb!');
+  if(dataHutang.some(h=>String(h.noBukti)===String(noBukti))) return alert('No Bukti sudah ada beb!');
+  let sisa = Math.max(0, total-dp);
+  let waktu = new Date(tgl + 'T' + new Date().toTimeString().slice(0,8)).toISOString();
+  dataHutang.push({
+    noBukti:noBukti, tanggal:tgl, waktu:waktu, waktuLocal:new Date(waktu).toLocaleString('id-ID'),
+    supplier:supplier, total:total, dp:dp, sisa:sisa, jatuhTempo:jt, status: sisa<=0 ? 'Lunas' : (dp>0 ? 'Sebagian' : 'Belum Lunas'),
+    ket:ket, riwayatBayar: dp>0 ? [{nominal:dp, tanggal:tgl, ket:'DP awal beb'}] : []
+  });
+  saveHutang(dataHutang);
+  alert('Hutang disimpan beb ✅\n\n'+supplier+' - '+fmtRp(total)+'\nSisa: '+fmtRp(sisa));
+  resetForm();
+  loadData();
+}
+function resetForm(){
+  document.getElementById('noBukti').value='';
+  document.getElementById('total').value=0;
+  document.getElementById('dp').value=0;
+  document.getElementById('jatuhTempo').value='';
+  document.getElementById('ket').value='';
+  document.getElementById('supplier').value='';
+  loadData();
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let fs = document.getElementById('filterStatus').value;
+  let list = dataHutang.filter(x=>{
+    if(fs && String(x.status)!==fs) return false;
+    if(!kw) return true;
+    return String(x.supplier||'').toLowerCase().includes(kw) || String(x.noBukti||'').toLowerCase().includes(kw) || String(x.ket||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodyHutang'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  // BEB, URUT WAKTU TERKECIL DULU BEB, SAMA KAYAK KARTU STOK BEB
+  list.sort((a,b)=> new Date(a.waktu||0) - new Date(b.waktu||0));
+  let hariIni = new Date().toISOString().split('T')[0];
+  list.forEach((x,idx)=>{
+    let idxAsli = dataHutang.indexOf(x);
+    let lewat = x.status!=='Lunas' && x.jatuhTempo && x.jatuhTempo < hariIni;
+    let badge = x.status==='Lunas' ? '<span class="badge b-lunas">LUNAS</span>' : x.status==='Sebagian' ? '<span class="badge b-sebagian">SEBAGIAN</span>' : '<span class="badge b-belum">BELUM LUNAS</span>';
+    if(lewat) badge += '<br><span class="badge b-belum" style="margin-top:3px;display:inline-block">JATUH TEMPO!</span>';
+    let sudahBayar = Number(x.total||0) - Number(x.sisa||0);
+    tbody.innerHTML += `<tr class="${lewat?'jatuh-tempo':''}">
+      <td class="center">${idx+1}</td>
+      <td>${x.waktuLocal||x.tanggal||'-'}</td>
+      <td class="center"><b>${x.noBukti}</b><br><span style="font-size:11px;color:#555">${x.ket||''}</span></td>
+      <td>${x.supplier||'-'}</td>
+      <td class="num">${fmtRp(x.total)}</td>
+      <td class="num" style="color:#28a745">${fmtRp(sudahBayar)}</td>
+      <td class="num" style="color:#dc3545;font-weight:bold">${fmtRp(x.sisa)}</td>
+      <td class="center">${x.jatuhTempo||'-'}</td>
+      <td class="center">${badge}</td>
+      <td class="center"><button class="btn btn-hijau" style="padding:4px 10px;" ${x.status==='Lunas'?'disabled':''} onclick="bukaBayar(${idxAsli})">💰 Bayar</button></td>
+      <td class="center"><button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusHutang(${idxAsli})">🗑️</button></td>
+    </tr>`;
+  });
+}
+function bukaBayar(idxAsli){
+  let x = dataHutang[idxAsli];
+  if(!x) return;
+  document.getElementById('bayarIdx').value = idxAsli;
+  document.getElementById('bayarNoBukti').innerText = x.noBukti;
+  document.getElementById('bayarSupplier').innerText = x.supplier;
+  document.getElementById('bayarTotal').innerText = fmtRp(x.total);
+  document.getElementById('bayarSudah').innerText = fmtRp(Number(x.total||0)-Number(x.sisa||0));
+  document.getElementById('bayarSisa').innerText = fmtRp(x.sisa);
+  document.getElementById('nominalBayar').value = '';
+  document.getElementById('tglBayar').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ketBayar').value = '';
+  let rw = x.riwayatBayar||[];
+  document.getElementById('riwayatBayar').innerHTML = rw.length ? rw.map(r=>`• ${r.tanggal||'-'} - ${fmtRp(r.nominal)} - ${r.ket||''}`).join('<br>') : 'Belum ada pembayaran beb, selain DP beb.';
+  document.getElementById('modalBayar').classList.add('show');
+  setTimeout(()=>document.getElementById('nominalBayar').focus(),50);
+}
+function tutupModalBayar(){ document.getElementById('modalBayar').classList.remove('show'); }
+function isiNominalSisa(){
+  let idx = Number(document.getElementById('bayarIdx').value);
+  let x = dataHutang[idx];
+  if(x) document.getElementById('nominalBayar').value = x.sisa;
+}
+function isiNominalSetengah(){
+  let idx = Number(document.getElementById('bayarIdx').value);
+  let x = dataHutang[idx];
+  if(x) document.getElementById('nominalBayar').value = Math.floor(Number(x.sisa||0)/2);
+}
+function simpanBayar(){
+  let idx = Number(document.getElementById('bayarIdx').value);
+  let x = dataHutang[idx];
+  if(!x) return;
+  let nominal = Number(document.getElementById('nominalBayar').value||0);
+  if(nominal<=0) return alert('Nominal harus > 0 beb!');
+  if(nominal > Number(x.sisa||0)) return alert('Nominal melebihi sisa beb! Sisa nya beb '+fmtRp(x.sisa));
+  let tgl = document.getElementById('tglBayar').value || new Date().toISOString().split('T')[0];
+  let ket = document.getElementById('ketBayar').value || 'Bayar hutang beb';
+  x.sisa = Number(x.sisa||0) - nominal;
+  if(!x.riwayatBayar) x.riwayatBayar = [];
+  x.riwayatBayar.push({nominal:nominal, tanggal:tgl, ket:ket});
+  if(x.sisa<=0){ x.sisa=0; x.status='Lunas'; }
+  else { x.status='Sebagian'; }
+  saveHutang(dataHutang);
+  alert('Pembayaran disimpan beb ✅\n\nBayar: '+fmtRp(nominal)+'\nSisa: '+fmtRp(x.sisa)+'\nStatus: '+x.status);
+  tutupModalBayar();
+  loadData();
+  // BEB, UPDATE JUGA STATUS DI PEMBELIAN BEB KALAU LUNAS BEB
+  if(x.status==='Lunas'){
+    let beli = loadBeli();
+    let berubah = false;
+    beli.forEach(b=>{ if(String(b.noBukti)===String(x.noBukti)){ b.bayar='Lunas (dulu Kredit)'; berubah=true; } });
+    if(berubah) localStorage.setItem(KEY_BELI, JSON.stringify(beli));
+  }
+}
+function hapusHutang(idxAsli){
+  let x = dataHutang[idxAsli];
+  if(!x) return;
+  if(!confirm('Hapus hutang ini beb?\n\n'+x.noBukti+' - '+x.supplier+' - Sisa '+fmtRp(x.sisa)+'\n\nPembelian nya beb TIDAK kehapus beb, hanya hutang nya beb aja beb yang hilang beb.')) return;
+  dataHutang.splice(idxAsli,1);
+  saveHutang(dataHutang);
+  loadData();
+  alert('Hutang dihapus beb ✅');
+}
+function exportHutang(){
+  let data={hutang:loadHutang(), supplier:loadSupplier(), pembelian:loadBeli(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hutang-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.simpanHutangManual=simpanHutangManual; window.resetForm=resetForm; window.renderTabel=renderTabel;
+window.bukaBayar=bukaBayar; window.tutupModalBayar=tutupModalBayar; window.isiNominalSisa=isiNominalSisa; window.isiNominalSetengah=isiNominalSetengah; window.simpanBayar=simpanBayar; window.hapusHutang=hapusHutang; window.exportHutang=exportHutang; window.hitungSisaManual=hitungSisaManual;
+loadData();
+</script>
+</body>
+</html>

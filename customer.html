@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Customer / Pelanggan - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form textarea,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.form textarea{height:60px;resize:vertical}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input{padding:6px;border:1px solid #999;width:240px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:150px}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff}
+.b-biasa{background:#6c757d} .b-member{background:#007bff} .b-vip{background:#ffc107;color:#000} .b-reseller{background:#28a745}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>👥 Customer / Pelanggan</h2><p>Data pelanggan beb - nyambung ke Kasir beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-orange" onclick="window.location='piutang.html'">💰 Piutang</button>
+    <button class="btn btn-ungu" onclick="window.location='supplier.html'">🏭 Supplier</button>
+    <button class="btn btn-biru" onclick="window.location='kartustok.html'">📒 Kartu Stok</button>
+    <button class="btn btn-kuning" onclick="exportCustomer()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card"><span>Total Customer</span><b id="sumCustomer">0</b></div>
+  <div class="card"><span>Total Transaksi Jual</span><b id="sumTrx">0</b></div>
+  <div class="card"><span>Total Nilai Jual</span><b id="sumNilai">Rp 0</b></div>
+  <div class="card"><span>Customer VIP / Member</span><b id="sumVip">0</b></div>
+</div>
+
+<div class="wrap">
+  <!-- BEB, FORM CUSTOMER BEB -->
+  <div class="form">
+    <h3 id="judulForm">➕ Tambah Customer Beb</h3>
+    <input type="hidden" id="editIdx" value="-1">
+    <label>Kode Customer</label>
+    <input id="kode" placeholder="CUS-001 / otomatis kalau kosong beb">
+    <label>Nama Customer *</label>
+    <input id="nama" placeholder="Contoh: Made Wirawan beb">
+    <label>Tipe Customer</label>
+    <select id="tipe">
+      <option value="Biasa">Biasa</option>
+      <option value="Member">Member</option>
+      <option value="VIP">VIP</option>
+      <option value="Reseller">Reseller</option>
+    </select>
+    <label>No HP / WA</label>
+    <input id="telp" placeholder="0812xxxx beb">
+    <label>Alamat</label>
+    <textarea id="alamat" placeholder="Alamat customer beb..."></textarea>
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Langganan tiap minggu beb">
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-hijau" style="flex:1" id="btnSimpan" onclick="simpanCustomer()">💾 Simpan</button>
+      <button class="btn" onclick="resetForm()">Reset</button>
+    </div>
+    <p style="font-size:11px;color:#555">Beb, habis simpan beb, customer nya beb langsung muncul beb di daftar beb + bisa dipilih beb di halaman <b>Kasir</b> beb.</p>
+  </div>
+
+  <!-- BEB, DAFTAR CUSTOMER BEB -->
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Daftar Customer Beb</b>
+      <input id="cari" placeholder="Cari kode / nama / telp / alamat..." oninput="renderTabel()">
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Kode</th><th>Nama Customer</th><th>Tipe</th><th>No HP / WA</th><th>Alamat</th><th>Total Belanja</th><th>Trx</th><th>Terakhir Beli</th><th>Aksi</th></tr></thead>
+      <tbody id="tbodyCustomer"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada customer beb. Tambah dulu beb di kiri beb.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_CUSTOMER='vfp_customer', KEY_TRANSAKSI='vfp_transaksi', KEY_PIUTANG='vfp_piutang';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadCustomer(){ try{return JSON.parse(localStorage.getItem(KEY_CUSTOMER))||[]}catch(e){return[]} }
+function loadTransaksi(){ try{return JSON.parse(localStorage.getItem(KEY_TRANSAKSI))||[]}catch(e){return[]} }
+function loadPiutang(){ try{return JSON.parse(localStorage.getItem(KEY_PIUTANG))||[]}catch(e){return[]} }
+function saveCustomer(a){ localStorage.setItem(KEY_CUSTOMER, JSON.stringify(a)); }
+
+let dataCustomer=[], dataTransaksi=[], dataPiutang=[];
+
+function loadData(){
+  dataCustomer = loadCustomer();
+  dataTransaksi = loadTransaksi();
+  dataPiutang = loadPiutang();
+  document.getElementById('sumCustomer').innerText = dataCustomer.length;
+  document.getElementById('sumTrx').innerText = dataTransaksi.length;
+  document.getElementById('sumNilai').innerText = fmtRp(dataTransaksi.reduce((a,b)=>a+Number(b.total||b.grandTotal||0),0));
+  document.getElementById('sumVip').innerText = dataCustomer.filter(c=>c.tipe==='VIP' || c.tipe==='Member').length;
+  renderTabel();
+}
+function buatKode(){
+  return 'CUS-' + String(dataCustomer.length+1).padStart(3,'0');
+}
+function simpanCustomer(){
+  let editIdx = Number(document.getElementById('editIdx').value);
+  let kode = document.getElementById('kode').value.trim() || buatKode();
+  let nama = document.getElementById('nama').value.trim();
+  if(!nama) return alert('Nama customer wajib diisi beb!');
+  let tipe = document.getElementById('tipe').value;
+  let telp = document.getElementById('telp').value.trim();
+  let alamat = document.getElementById('alamat').value.trim();
+  let ket = document.getElementById('ket').value.trim();
+
+  let duplikat = dataCustomer.findIndex((s,i)=>String(s.kode)===String(kode) && i!==editIdx);
+  if(duplikat>=0) return alert('Kode sudah dipakai beb, ganti kode lain beb!');
+
+  let obj = {kode:kode, nama:nama, tipe:tipe, telp:telp, alamat:alamat, ket:ket, dibuat:new Date().toISOString()};
+  if(editIdx>=0){
+    dataCustomer[editIdx] = obj;
+    alert('Customer diupdate beb ✅');
+  }else{
+    dataCustomer.push(obj);
+    alert('Customer ditambah beb ✅\n\n'+nama+' ('+kode+')');
+  }
+  saveCustomer(dataCustomer);
+  resetForm();
+  loadData();
+}
+function editCustomer(idxAsli){
+  let s = dataCustomer[idxAsli];
+  if(!s) return;
+  document.getElementById('editIdx').value = idxAsli;
+  document.getElementById('kode').value = s.kode||'';
+  document.getElementById('nama').value = s.nama||'';
+  document.getElementById('tipe').value = s.tipe||'Biasa';
+  document.getElementById('telp').value = s.telp||'';
+  document.getElementById('alamat').value = s.alamat||'';
+  document.getElementById('ket').value = s.ket||'';
+  document.getElementById('judulForm').innerText = '✏️ Edit Customer Beb';
+  document.getElementById('btnSimpan').innerText = '💾 Update';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function hapusCustomer(idxAsli){
+  let s = dataCustomer[idxAsli];
+  if(!s) return;
+  // BEB, CEK APAKAH CUSTOMER INI PERNAH BELANJA / PUNYA PIUTANG BEB
+  let trx = dataTransaksi.filter(t=>String(t.customer)===String(s.nama) || String(t.customer)===String(s.kode) || String(t.namaCustomer)===String(s.nama)).length;
+  let piutang = dataPiutang.filter(p=>String(p.customer)===String(s.nama) || String(p.customer)===String(s.kode)).length;
+  let pesan = 'Hapus customer ini beb?\n\n'+s.nama+' ('+s.kode+')';
+  if(trx>0 || piutang>0) pesan += '\n\n⚠️ Customer ini sudah punya '+trx+'x transaksi beb dan '+piutang+'x piutang beb. Riwayat nya beb TIDAK akan kehapus beb, hanya data customer nya beb aja beb yang hilang beb.';
+  if(!confirm(pesan)) return;
+  dataCustomer.splice(idxAsli,1);
+  saveCustomer(dataCustomer);
+  loadData();
+  alert('Customer dihapus beb ✅');
+}
+function resetForm(){
+  document.getElementById('editIdx').value = -1;
+  document.getElementById('kode').value = '';
+  document.getElementById('nama').value = '';
+  document.getElementById('tipe').value = 'Biasa';
+  document.getElementById('telp').value = '';
+  document.getElementById('alamat').value = '';
+  document.getElementById('ket').value = '';
+  document.getElementById('judulForm').innerText = '➕ Tambah Customer Beb';
+  document.getElementById('btnSimpan').innerText = '💾 Simpan';
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let list = dataCustomer.filter(x=>{
+    if(!kw) return true;
+    return String(x.kode||'').toLowerCase().includes(kw) || String(x.nama||'').toLowerCase().includes(kw) || String(x.telp||'').toLowerCase().includes(kw) || String(x.alamat||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodyCustomer'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  list.sort((a,b)=> String(a.nama||'').localeCompare(String(b.nama||'')));
+  list.forEach((x,idx)=>{
+    let idxAsli = dataCustomer.indexOf(x);
+    // BEB, HITUNG TOTAL BELANJA PER CUSTOMER BEB DARI vfp_transaksi BEB
+    let trxCus = dataTransaksi.filter(t=>String(t.customer)===String(x.nama) || String(t.customer)===String(x.kode) || String(t.namaCustomer)===String(x.nama) || String(t.pelanggan)===String(x.nama));
+    let totalBelanja = trxCus.reduce((a,b)=>a+Number(b.total||b.grandTotal||0),0);
+    let terakhir = trxCus.length ? trxCus.sort((a,b)=>new Date(b.waktu||0)-new Date(a.waktu||0))[0] : null;
+    let badgeTipe = x.tipe==='VIP' ? '<span class="badge b-vip">VIP</span>' : x.tipe==='Member' ? '<span class="badge b-member">Member</span>' : x.tipe==='Reseller' ? '<span class="badge b-reseller">Reseller</span>' : '<span class="badge b-biasa">Biasa</span>';
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td class="center"><b>${x.kode}</b></td>
+      <td><b>${x.nama}</b><br><span style="font-size:11px;color:#555">${x.ket||''}</span></td>
+      <td class="center">${badgeTipe}</td>
+      <td>${x.telp ? `<a href="https://wa.me/${String(x.telp).replace(/[^0-9]/g,'')}" target="_blank">${x.telp}</a>` : '-'}</td>
+      <td>${x.alamat||'-'}</td>
+      <td class="num" style="font-weight:bold">${fmtRp(totalBelanja)}</td>
+      <td class="center">${trxCus.length}</td>
+      <td class="center">${terakhir ? (terakhir.waktuLocal || new Date(terakhir.waktu).toLocaleString('id-ID')) : '-'}</td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-biru" style="padding:4px 8px;" onclick="editCustomer(${idxAsli})">✏️</button>
+        <button class="btn" style="padding:4px 8px;" onclick="pilihCustomer(${idxAsli})">🛒 Jual</button>
+        <button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusCustomer(${idxAsli})">🗑️</button>
+      </td>
+    </tr>`;
+  });
+}
+function pilihCustomer(idxAsli){
+  let s = dataCustomer[idxAsli];
+  if(!s) return;
+  localStorage.setItem('vfp_customer_terpilih', s.nama);
+  window.location = 'kasir.html';
+}
+function exportCustomer(){
+  let data={customer:loadCustomer(), transaksi:loadTransaksi(), piutang:loadPiutang(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='customer-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.simpanCustomer=simpanCustomer; window.editCustomer=editCustomer; window.hapusCustomer=hapusCustomer;
+window.resetForm=resetForm; window.pilihCustomer=pilihCustomer; window.exportCustomer=exportCustomer; window.renderTabel=renderTabel;
+loadData();
+</script>
+</body>
+</html>

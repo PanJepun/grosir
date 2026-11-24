@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>PANJEPUN STORE - Jual Kredit</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#f36262;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.form .row{display:flex;gap:8px}
+.form .row>div{flex:1}
+.total-box{background:#f2f2f2;border:1px solid #aaa;padding:8px;margin-top:10px;text-align:right;font-size:14px}
+.total-box b{font-size:18px}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input{padding:6px;border:1px solid #999;width:220px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:150px}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff}
+.b-cash{background:#28a745} .b-kredit{background:#dc3545}
+.keranjang{margin-top:10px;border:1px solid #aaa;background:#fff}
+.keranjang-head{padding:8px;background:#f2f2f2;border-bottom:1px solid #aaa;font-weight:bold;display:flex;justify-content:space-between}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:12px}
+.modal.show{display:flex}
+.modal-box{background:#fff;width:100%;max-width:640px;max-height:85vh;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.modal-head{padding:12px;display:flex;justify-content:space-between;align-items:center;background:#2a7abf;color:#fff}
+.modal-head h3{margin:0;font-size:15px}
+.modal-head button{background:#fff;border:none;padding:6px 10px;cursor:pointer;font-weight:bold;border-radius:4px}
+.modal-cari{padding:10px;border-bottom:1px solid #ddd}
+.modal-cari input{width:100%;padding:10px;font-size:14px;border:1px solid #999}
+.modal-info{padding:6px 10px;font-size:11px;color:#555;background:#f2f2f2}
+.modal-body{overflow:auto;flex:1}
+.modal-body table th{position:sticky;top:0}
+.modal-body tr{cursor:pointer}
+.modal-body tr:hover td{background:#d6eaff!important}
+.modal-bayar{max-width:420px}
+.modal-bayar .modal-body{padding:14px}
+.pilih-bayar{display:flex;gap:10px;margin-top:10px}
+.pilih-bayar button{flex:1;padding:14px;font-size:15px;font-weight:bold;cursor:pointer;border:2px solid #999;background:#fff;border-radius:8px}
+</style>
+</head>
+<body>
+
+<!-- BEB, TRIAL PANJEPUN STORE BEB - SAMPAI 31-12-2026 BEB -->
+<div id="trialBar" style="background:#f59e0b;color:#000;text-align:center;padding:8px;font-weight:800;font-size:13px;position:sticky;top:0;z-index:999">⏳ TRIAL PANJEPUN STORE - Sisa <span id="sisaTrial">...</span> - Berakhir 31-12-2026 beb</div>
+<div id="trialLock" style="display:none;position:fixed;inset:0;background:#0a1629;z-index:9999;justify-content:center;align-items:center;padding:20px;text-align:center;color:#fff">
+  <div style="background:#12233a;border:2px solid #ef4444;border-radius:16px;padding:30px;max-width:420px;width:100%">
+    <div style="font-size:50px">🔒</div>
+    <h2 style="color:#ef4444;margin:10px 0">TRIAL HABIS BEB!</h2>
+    <p style="color:#cbd5e1;font-size:14px;line-height:1.6">Masa Trial PANJEPUN STORE beb sudah berakhir beb<br><b style="color:#fff">31 Desember 2026</b><br><br>Beb, hubungi Master beb untuk perpanjangan beb.</p>
+    <p style="color:#94a3b8;font-size:12px">Tanggal hari ini beb: <span id="tglSekarangTrial"></span></p>
+    <button onclick="window.location='login.html'" style="background:#ff7a00;color:#fff;border:none;padding:14px;width:100%;border-radius:10px;font-weight:800;cursor:pointer;margin-top:10px">➡️ KEMBALI KE LOGIN</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div><h2>💰 PANJEPUN STORE - Jual Kredit / Cash</h2><p>Jual beb - isi semua barang dulu beb, baru Selesai beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-ungu" onclick="window.location='customer.html'">👥 Customer</button>
+    <button class="btn btn-orange" onclick="window.location='piutang.html'">💰 Piutang</button>
+    <button class="btn btn-biru" onclick="window.location='kartustok.html'">📒 Kartu Stok</button>
+    <button class="btn btn-kuning" onclick="exportJual()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card"><span>Total Penjualan Hari Ini</span><b id="sumHari">Rp 0</b></div>
+  <div class="card"><span>Total Penjualan (Semua)</span><b id="sumTotal">Rp 0</b></div>
+  <div class="card"><span>Total Piutang Belum Lunas</span><b id="sumPiutang" style="color:#dc3545">Rp 0</b></div>
+  <div class="card"><span>Jumlah Nota Jual</span><b id="sumNota">0</b></div>
+</div>
+
+<div class="wrap">
+  <div class="form">
+    <h3>➕ Form Jual Beb - Isi Semua Dulu Beb</h3>
+    <label>No Nota Jual</label>
+    <input id="noBukti" placeholder="J-00001 / otomatis kalau kosong beb">
+    <label>Tanggal</label>
+    <input id="tgl" type="date">
+
+    <label>Customer</label>
+    <select id="customer"><option value="">-- Umum / Tanpa Nama Beb --</option></select>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn btn-ungu" style="flex:1" onclick="window.location='customer.html'">👥 Kelola Customer</button>
+      <button class="btn btn-abu" style="flex:1" onclick="tambahCustomerManual()">✏️ Tulis Manual</button>
+    </div>
+    <input id="customerManual" placeholder="Tulis nama customer baru beb..." style="display:none;margin-top:6px">
+
+    <label>Barang <span style="color:#007bff;font-weight:normal">(Double Klik / Enter beb untuk buka tabel barang beb)</span></label>
+    <input id="cariBarang" placeholder="Double Klik / Enter beb untuk pilih barang..." autocomplete="off" onclick="klikBarang()" ondblclick="bukaModalBarang()" onkeydown="enterBarang(event)" oninput="ketikBarang()">
+    <input type="hidden" id="pilihBarang" value="">
+    <div id="barangTerpilih" style="font-size:11px;color:#28a745;margin-top:4px;font-weight:bold"></div>
+
+    <div class="row">
+      <div><label>Qty Jual</label><input id="qty" type="number" min="1" value="1" oninput="hitungTotal()"></div>
+      <div><label>Harga Jual / Pcs</label><input id="harga" type="number" min="0" value="0" oninput="hitungTotal()"></div>
+    </div>
+
+    <label>Diskon / Potongan (Rp, opsional beb)</label>
+    <input id="diskon" type="number" min="0" value="0" oninput="hitungTotal()">
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Bon dulu beb">
+    <div class="total-box">Total barang ini: <b id="totalTxt">Rp 0</b><br><span id="stokTxt" style="font-size:11px;color:#555"></span></div>
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-biru" style="flex:1" onclick="tambahKeKeranjang()">➕ Tambah ke Daftar</button>
+      <button class="btn" onclick="resetItem()">Reset Item</button>
+    </div>
+
+    <div class="keranjang">
+      <div class="keranjang-head"><span>🧺 Daftar Jual Nota Ini Beb</span><span id="countKeranjang">0 item</span></div>
+      <div style="overflow:auto;max-height:180px">
+        <table><thead><tr><th>Kode</th><th>Nama</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody id="tbodyKeranjang"></tbody></table>
+        <div id="emptyKeranjang" style="text-align:center;padding:12px;color:#888">Belum ada barang beb. Tambah dulu beb di atas beb.</div>
+      </div>
+      <div style="padding:8px;text-align:right;background:#f2f2f2;border-top:1px solid #aaa">Grand Total: <b id="grandTotal" style="font-size:16px">Rp 0</b></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-hijau" style="flex:1;padding:12px;font-size:14px" onclick="selesaiJual()">✅ Selesai Jual - Cash / Kredit</button>
+    </div>
+    <p style="font-size:11px;color:#555">Beb, klik <b>Selesai Jual</b> beb kalau beb udah selesai beb isi semua barang beb. Nanti beb ditanya beb <b>Cash / Kredit</b> beb. Kalau Kredit beb, langsung masuk beb ke <b>Piutang</b> beb.</p>
+  </div>
+
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Riwayat Penjualan Beb</b>
+      <input id="cari" placeholder="Cari kode / nama / customer / no nota..." oninput="renderTabel()">
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Tanggal</th><th>No Nota</th><th>Kode</th><th>Nama Barang</th><th>Customer</th><th>Qty</th><th>Harga Jual</th><th>Total</th><th>Bayar</th><th>Hapus</th></tr></thead>
+      <tbody id="tbodyJual"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada penjualan beb. Jual dulu beb di kiri beb.</div>
+    </div>
+  </div>
+</div>
+
+<div id="modalBarang" class="modal" onclick="if(event.target===this) tutupModalBarang()">
+  <div class="modal-box">
+    <div class="modal-head"><h3>📋 Pilih Barang - Tabel Master Beb</h3><button onclick="tutupModalBarang()">✖ Tutup</button></div>
+    <div class="modal-cari"><input id="cariModal" placeholder="Cari kode / nama barang beb... 🔍" oninput="renderModalBarang()" onkeydown="enterModal(event)"></div>
+    <div class="modal-info">Beb, klik 1x beb baris nya beb untuk pilih beb. Total: <b id="countModal">0</b> barang beb | ENTER beb untuk pilih yang pertama beb</div>
+    <div class="modal-body">
+      <table><thead><tr><th>No</th><th>Kode Barang</th><th>Nama Barang</th><th>Stok</th><th>HPP</th><th>Harga Jual</th><th>Pilih</th></tr></thead><tbody id="tbodyModal"></tbody></table>
+      <div id="emptyModal" style="text-align:center;padding:20px;color:#888;display:none">Tidak ketemu beb</div>
+    </div>
+    <div style="padding:10px"><button class="btn" style="width:100%" onclick="tutupModalBarang()">Tutup</button></div>
+  </div>
+</div>
+
+<div id="modalBayar" class="modal">
+  <div class="modal-box modal-bayar">
+    <div class="modal-head"><h3>💰 Pembayaran Beb?</h3><button onclick="tutupModalBayar()">✖</button></div>
+    <div class="modal-body">
+      <div>No Nota: <b id="bayarNoBukti">-</b> | Customer: <b id="bayarCustomer">-</b></div>
+      <div style="margin-top:6px">Total yang harus dibayar beb: <b id="bayarTotal" style="font-size:20px">Rp 0</b></div>
+      <div style="margin-top:8px;font-size:11px;color:#555">Beb, kalau Kredit beb, langsung beb dicatat beb ke file Piutang beb. Kalau Cash beb, lunas beb.</div>
+      <div class="pilih-bayar">
+        <button style="border-color:#28a745;color:#28a745" onclick="pilihBayar('Cash')">💵 CASH<br><small>Lunas beb</small></button>
+        <button style="border-color:#dc3545;color:#dc3545" onclick="pilihBayar('Kredit')">💳 KREDIT<br><small>Masuk Piutang beb</small></button>
+      </div>
+      <div id="formKredit" style="display:none;margin-top:10px">
+        <label>Jatuh Tempo</label>
+        <input id="jatuhTempo" type="date" style="width:100%;padding:8px;border:1px solid #999">
+        <label>DP / Sudah Bayar (opsional beb)</label>
+        <input id="dpBayar" type="number" min="0" value="0" style="width:100%;padding:8px;border:1px solid #999" oninput="hitungSisaPiutang()">
+        <div style="margin-top:6px;text-align:right">Sisa Piutang: <b id="sisaPiutangTxt">Rp 0</b></div>
+        <button class="btn btn-merah" style="width:100%;margin-top:8px;padding:10px" onclick="konfirmasiKredit()">✅ Simpan Kredit ke Piutang</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// BEB, TRIAL PANJEPUN STORE BEB - SAMPAI 31-12-2026 BEB
+const TRIAL_END = new Date('2026-12-31T23:59:59');
+const TRIAL_END_TXT = '31-12-2026';
+function cekTrial(){
+  let sekarang = new Date();
+  let sisaHari = Math.ceil((TRIAL_END - sekarang) / (1000*60*60*24));
+  let sisaEl = document.getElementById('sisaTrial');
+  if(sisaEl) sisaEl.innerText = sisaHari < 0 ? '0 hari beb - HABIS BEB' : (sisaHari===0 ? 'HARI TERAKHIR BEB!' : sisaHari + ' hari beb');
+  let tglEl = document.getElementById('tglSekarangTrial');
+  if(tglEl) tglEl.innerText = sekarang.toLocaleDateString('id-ID');
+  if(sekarang > TRIAL_END){
+    let lock = document.getElementById('trialLock');
+    if(lock) lock.style.display = 'flex';
+    document.querySelectorAll('button, input, select, textarea').forEach(el=>{ if(!el.closest('#trialLock')) el.disabled = true; });
+    let bar = document.getElementById('trialBar');
+    if(bar){ bar.style.background='#ef4444'; bar.style.color='#fff'; bar.innerText='🔒 TRIAL HABIS BEB - Berakhir '+TRIAL_END_TXT+' - Hubungi Master beb'; }
+    return false;
+  }
+  if(sisaHari <= 7){
+    let bar = document.getElementById('trialBar');
+    if(bar){ bar.style.background='#ef4444'; bar.style.color='#fff'; }
+    if(sisaHari <= 3) alert('⚠️ Beb, Trial tinggal '+sisaHari+' hari beb!\nBerakhir '+TRIAL_END_TXT+' beb.\nHubungi Master beb untuk perpanjangan beb.');
+  }
+  return true;
+}
+function trialMasihAktif(){
+  if(new Date() > TRIAL_END){
+    cekTrial();
+    alert('🔒 Trial habis beb! Berakhir '+TRIAL_END_TXT+' beb.');
+    return false;
+  }
+  return true;
+}
+
+const KEY_BARANG='tbl_mstrbrg', KEY_KARTU='vfp_kartu_stok', KEY_JUAL='vfp_penjualan', KEY_TRANSAKSI='vfp_transaksi', KEY_CUSTOMER='vfp_customer', KEY_PIUTANG='vfp_piutang';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadBarang(){ try{return JSON.parse(localStorage.getItem(KEY_BARANG))||[]}catch(e){return[]} }
+function loadKartu(){ try{return JSON.parse(localStorage.getItem(KEY_KARTU))||[]}catch(e){return[]} }
+function loadJual(){ try{return JSON.parse(localStorage.getItem(KEY_JUAL))||[]}catch(e){return[]} }
+function loadTransaksi(){ try{return JSON.parse(localStorage.getItem(KEY_TRANSAKSI))||[]}catch(e){return[]} }
+function loadCustomer(){ try{return JSON.parse(localStorage.getItem(KEY_CUSTOMER))||[]}catch(e){return[]} }
+function loadPiutang(){ try{return JSON.parse(localStorage.getItem(KEY_PIUTANG))||[]}catch(e){return[]} }
+function saveBarang(a){ localStorage.setItem(KEY_BARANG, JSON.stringify(a)); }
+function saveKartu(a){ localStorage.setItem(KEY_KARTU, JSON.stringify(a)); }
+function saveJual(a){ localStorage.setItem(KEY_JUAL, JSON.stringify(a)); }
+function saveTransaksi(a){ localStorage.setItem(KEY_TRANSAKSI, JSON.stringify(a)); }
+function saveCustomer(a){ localStorage.setItem(KEY_CUSTOMER, JSON.stringify(a)); }
+function savePiutang(a){ localStorage.setItem(KEY_PIUTANG, JSON.stringify(a)); }
+
+let dataBarang=[], dataJual=[], dataCustomer=[], dataPiutang=[];
+let keranjang=[];
+let modalList=[];
+
+function loadData(){
+  dataBarang = loadBarang();
+  dataJual = loadJual();
+  dataCustomer = loadCustomer();
+  dataPiutang = loadPiutang();
+  isiDropdownCustomer();
+  if(!document.getElementById('tgl').value) document.getElementById('tgl').value = new Date().toISOString().split('T')[0];
+  if(!document.getElementById('noBukti').value) document.getElementById('noBukti').value = buatNoBukti();
+  let hariIni = new Date().toISOString().split('T')[0];
+  let jualHari = dataJual.filter(j=>String(j.tanggal)===hariIni);
+  document.getElementById('sumHari').innerText = fmtRp(jualHari.reduce((a,b)=>a+Number(b.total||0),0));
+  document.getElementById('sumTotal').innerText = fmtRp(dataJual.reduce((a,b)=>a+Number(b.total||0),0));
+  document.getElementById('sumPiutang').innerText = fmtRp(dataPiutang.filter(p=>p.status!=='Lunas').reduce((a,b)=>a+Number(b.sisa||b.total||0),0));
+  document.getElementById('sumNota').innerText = new Set(dataJual.map(j=>j.noBukti)).size;
+  renderTabel();
+  renderKeranjang();
+  hitungTotal();
+}
+function buatNoBukti(){ return 'J-' + String(new Set(loadJual().map(j=>j.noBukti)).size+1).padStart(5,'0'); }
+
+function tambahKeKeranjang(){
+  if(!trialMasihAktif()) return;
+  let kode = document.getElementById('pilihBarang').value;
+  if(!kode) return alert('Pilih barang dulu beb! Double klik / Enter beb di kolom Barang beb.');
+  let qty = Number(document.getElementById('qty').value||0);
+  let harga = Number(document.getElementById('harga').value||0);
+  let diskon = Number(document.getElementById('diskon').value||0);
+  if(qty<=0) return alert('Qty harus > 0 beb!');
+  let b = dataBarang.find(x=>String(x.kodebrg)===String(kode));
+  if(!b) return alert('Barang tidak ketemu beb!');
+  if(Number(b.jmlbrg||0) < qty) {
+    if(!confirm('Stok kurang beb!\n\nStok '+b.namabrg+' tinggal '+fmt(b.jmlbrg)+' beb, mau jual '+qty+' beb?\n\nLanjut beb? Stok akan jadi minus beb.')) return;
+  }
+  let ket = document.getElementById('ket').value || '';
+  let total = (qty*harga) - diskon;
+  let ada = keranjang.findIndex(k=>String(k.kode)===String(kode));
+  if(ada>=0){ keranjang[ada].qty += qty; keranjang[ada].diskon += diskon; keranjang[ada].total = (keranjang[ada].qty * keranjang[ada].harga) - keranjang[ada].diskon; }
+  else { keranjang.push({kode:b.kodebrg, nama:b.namabrg, qty:qty, harga:harga, diskon:diskon, total:total, ket:ket}); }
+  renderKeranjang();
+  resetItem();
+  alert('Ditambah ke daftar beb ✅\n\n'+b.namabrg+' x'+qty+'\nLanjut beb isi barang berikutnya beb, kalau udah semua beb klik Selesai Jual beb.');
+}
+function hapusKeranjang(idx){ keranjang.splice(idx,1); renderKeranjang(); }
+function renderKeranjang(){
+  let tbody = document.getElementById('tbodyKeranjang'); tbody.innerHTML='';
+  document.getElementById('emptyKeranjang').style.display = keranjang.length ? 'none':'block';
+  document.getElementById('countKeranjang').innerText = keranjang.length + ' item';
+  let grand = 0;
+  keranjang.forEach((k,idx)=>{
+    grand += Number(k.total||0);
+    tbody.innerHTML += `<tr><td class="center">${k.kode}</td><td>${k.nama}</td><td class="num">${fmt(k.qty)}</td><td class="num">${fmtRp(k.total)}</td><td class="center"><button class="btn btn-merah" style="padding:2px 6px" onclick="hapusKeranjang(${idx})">✖</button></td></tr>`;
+  });
+  document.getElementById('grandTotal').innerText = fmtRp(grand);
+}
+function resetItem(){
+  document.getElementById('pilihBarang').value='';
+  document.getElementById('cariBarang').value='';
+  document.getElementById('barangTerpilih').innerText='';
+  document.getElementById('qty').value=1;
+  document.getElementById('harga').value=0;
+  document.getElementById('diskon').value=0;
+  document.getElementById('ket').value='';
+  document.getElementById('stokTxt').innerText='';
+  hitungTotal();
+}
+
+function selesaiJual(){
+  if(!trialMasihAktif()) return;
+  if(keranjang.length===0) return alert('Keranjang masih kosong beb! Tambah barang dulu beb ke daftar beb.');
+  let noBukti = document.getElementById('noBukti').value || buatNoBukti();
+  let customer = getCustomerTerpilih() || 'Umum';
+  let grand = keranjang.reduce((a,b)=>a+Number(b.total||0),0);
+  document.getElementById('bayarNoBukti').innerText = noBukti;
+  document.getElementById('bayarCustomer').innerText = customer;
+  document.getElementById('bayarTotal').innerText = fmtRp(grand);
+  document.getElementById('formKredit').style.display='none';
+  document.getElementById('dpBayar').value=0;
+  document.getElementById('jatuhTempo').value='';
+  document.getElementById('sisaPiutangTxt').innerText = fmtRp(grand);
+  document.getElementById('modalBayar').classList.add('show');
+}
+function tutupModalBayar(){ document.getElementById('modalBayar').classList.remove('show'); }
+function pilihBayar(jenis){
+  if(jenis==='Cash'){
+    simpanSemuaJual('Cash', 0, '');
+    tutupModalBayar();
+  }else{
+    document.getElementById('formKredit').style.display='block';
+    hitungSisaPiutang();
+    document.getElementById('jatuhTempo').focus();
+  }
+}
+function hitungSisaPiutang(){
+  let grand = keranjang.reduce((a,b)=>a+Number(b.total||0),0);
+  let dp = Number(document.getElementById('dpBayar').value||0);
+  document.getElementById('sisaPiutangTxt').innerText = fmtRp(Math.max(0, grand-dp));
+}
+function konfirmasiKredit(){
+  if(!trialMasihAktif()) return;
+  let jt = document.getElementById('jatuhTempo').value;
+  if(!jt) return alert('Isi Jatuh Tempo dulu beb!');
+  let dp = Number(document.getElementById('dpBayar').value||0);
+  simpanSemuaJual('Kredit', dp, jt);
+  tutupModalBayar();
+}
+
+function simpanSemuaJual(jenisBayar, dp, jatuhTempo){
+  if(!trialMasihAktif()) return;
+  let noBukti = document.getElementById('noBukti').value || buatNoBukti();
+  let tgl = document.getElementById('tgl').value || new Date().toISOString().split('T')[0];
+  let customer = getCustomerTerpilih() || 'Umum';
+  let waktu = new Date(tgl + 'T' + new Date().toTimeString().slice(0,8)).toISOString();
+  let waktuLocal = new Date(waktu).toLocaleString('id-ID');
+  let grand = keranjang.reduce((a,b)=>a+Number(b.total||0),0);
+  let mentah = loadBarang();
+  let kartu = loadKartu();
+  let baruJual = [];
+  let baruTransaksi = [];
+  keranjang.forEach(k=>{
+    let b = mentah.find(x=>String(x.kodebrg)===String(k.kode));
+    if(!b) return;
+    b.jmlbrg = Number(b.jmlbrg||0) - Number(k.qty||0);
+    kartu.push({waktu:waktu, waktuLocal:waktuLocal, kode:b.kodebrg, nama:b.namabrg, tipe:'Keluar', noBukti:noBukti, masuk:0, keluar:Number(k.qty), sisa:b.jmlbrg, supplier:customer, ket:'Jual beb - '+k.ket||''});
+    baruJual.push({waktu:waktu, waktuLocal:waktuLocal, tanggal:tgl, noBukti:noBukti, kode:b.kodebrg, nama:b.namabrg, customer:customer, qty:Number(k.qty), harga:Number(k.harga), diskon:Number(k.diskon||0), total:Number(k.total), ket:k.ket||'', bayar:jenisBayar, jatuhTempo:jatuhTempo||''});
+    baruTransaksi.push({waktu:waktu, waktuLocal:waktuLocal, tanggal:tgl, noBukti:noBukti, noNota:noBukti, kode:b.kodebrg, nama:b.namabrg, customer:customer, namaCustomer:customer, pelanggan:customer, qty:Number(k.qty), harga:Number(k.harga), total:Number(k.total), bayar:jenisBayar});
+  });
+  saveBarang(mentah);
+  saveKartu(kartu);
+  dataJual = dataJual.concat(baruJual);
+  saveJual(dataJual);
+  let trx = loadTransaksi();
+  trx = trx.concat(baruTransaksi);
+  saveTransaksi(trx);
+
+  if(jenisBayar==='Kredit'){
+    let sisa = Math.max(0, grand - Number(dp||0));
+    let piutang = loadPiutang();
+    piutang.push({
+      noBukti:noBukti, tanggal:tgl, waktu:waktu, waktuLocal:waktuLocal,
+      customer:customer, namaCustomer:customer, pelanggan:customer, total:grand, dp:Number(dp||0), sisa:sisa,
+      jatuhTempo:jatuhTempo, status: sisa<=0 ? 'Lunas' : 'Belum Lunas',
+      ket:'Piutang Jual beb - '+noBukti+' - '+keranjang.map(k=>k.nama+' x'+k.qty).join(', '),
+      riwayatBayar: Number(dp||0)>0 ? [{nominal:Number(dp), tanggal:tgl, ket:'DP awal beb'}] : []
+    });
+    savePiutang(piutang);
+    alert('Jual disimpan beb ✅\n\nNota: '+noBukti+'\nCustomer: '+customer+'\nTotal: '+fmtRp(grand)+'\nBayar: KREDIT beb\nSisa Piutang: '+fmtRp(sisa)+'\n\nSudah dicatat beb ke file Piutang beb 💰\nCek beb di Piutang beb.');
+  }else{
+    alert('Jual disimpan beb ✅\n\nNota: '+noBukti+'\nCustomer: '+customer+'\nTotal: '+fmtRp(grand)+'\nBayar: CASH beb - Lunas beb 💵');
+  }
+  keranjang = [];
+  renderKeranjang();
+  document.getElementById('noBukti').value = '';
+  loadData();
+}
+
+function klikBarang(){ let v=document.getElementById('cariBarang').value.trim(); if(!v) bukaModalBarang(); }
+function enterBarang(e){ if(e.key==='Enter'){ e.preventDefault(); let kw=document.getElementById('cariBarang').value.toLowerCase().trim(); let pas=dataBarang.find(b=>String(b.kodebrg).toLowerCase()===kw); if(pas) pilihBarangModal(pas.kodebrg); else bukaModalBarang(); } }
+function ketikBarang(){ let kw=document.getElementById('cariBarang').value.toLowerCase().trim(); if(!kw) return; let ketemu=dataBarang.find(b=>String(b.kodebrg).toLowerCase()===kw || String(b.namabrg).toLowerCase()===kw); if(ketemu) pilihBarangModal(ketemu.kodebrg); }
+function bukaModalBarang(){ document.getElementById('modalBarang').classList.add('show'); document.getElementById('cariModal').value=''; renderModalBarang(); setTimeout(()=>document.getElementById('cariModal').focus(),50); }
+function tutupModalBarang(){ document.getElementById('modalBarang').classList.remove('show'); document.getElementById('cariBarang').focus(); }
+function renderModalBarang(){
+  let kw=document.getElementById('cariModal').value.toLowerCase().trim();
+  modalList=dataBarang.filter(b=>{ if(!kw) return true; return String(b.kodebrg||'').toLowerCase().includes(kw) || String(b.namabrg||'').toLowerCase().includes(kw); }).sort((a,b)=>String(a.namabrg||'').localeCompare(String(b.namabrg||'')));
+  let tbody=document.getElementById('tbodyModal'); tbody.innerHTML='';
+  document.getElementById('countModal').innerText=modalList.length;
+  document.getElementById('emptyModal').style.display=modalList.length?'none':'block';
+  modalList.forEach((b,idx)=>{ tbody.innerHTML+=`<tr onclick="pilihBarangModal('${String(b.kodebrg).replace(/'/g,"")}')"><td class="center">${idx+1}</td><td class="center"><b>${b.kodebrg}</b></td><td>${b.namabrg}</td><td class="num" style="font-weight:bold">${fmt(b.jmlbrg)}</td><td class="num">${fmtRp(b.hpp||0)}</td><td class="num">${fmtRp(b.hrgjual||b.harga||0)}</td><td class="center"><button class="btn btn-hijau" style="padding:4px 10px;">Pilih</button></td></tr>`; });
+}
+function enterModal(e){ if(e.key==='Enter'){ e.preventDefault(); if(modalList.length>0) pilihBarangModal(modalList[0].kodebrg); } }
+function pilihBarangModal(kode){
+  let b=dataBarang.find(x=>String(x.kodebrg)===String(kode)); if(!b) return;
+  document.getElementById('pilihBarang').value=b.kodebrg;
+  document.getElementById('cariBarang').value=b.kodebrg+' - '+b.namabrg;
+  document.getElementById('barangTerpilih').innerText='✅ Terpilih beb: '+b.namabrg+' | Stok: '+fmt(b.jmlbrg);
+  tutupModalBarang(); isiBarang(); document.getElementById('qty').focus(); document.getElementById('qty').select();
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ tutupModalBarang(); tutupModalBayar(); } });
+
+function isiDropdownCustomer(){
+  let sel = document.getElementById('customer'); if(!sel) return;
+  let terpilih = localStorage.getItem('vfp_customer_terpilih') || sel.value || '';
+  localStorage.removeItem('vfp_customer_terpilih');
+  let listCus = [...dataCustomer].sort((a,b)=>String(a.nama||'').localeCompare(String(b.nama||'')));
+  sel.innerHTML = '<option value="">-- Umum / Tanpa Nama Beb --</option>' + listCus.map(c=>`<option value="${c.nama}">${c.nama} (${c.kode}) - ${c.tipe||'Biasa'}</option>`).join('') + '<option value="__manual__">✏️ Tulis Manual...</option>';
+  if(terpilih){
+    if([...sel.options].some(o=>o.value===terpilih)){ sel.value = terpilih; }
+    else if(terpilih){ sel.value='__manual__'; document.getElementById('customerManual').style.display='block'; document.getElementById('customerManual').value = terpilih; }
+  }
+  cekCustomerManual();
+}
+function cekCustomerManual(){ let v=document.getElementById('customer').value; let inp=document.getElementById('customerManual'); if(v==='__manual__'){ inp.style.display='block'; inp.focus(); } else { inp.style.display='none'; } }
+function tambahCustomerManual(){ let sel=document.getElementById('customer'); sel.value='__manual__'; cekCustomerManual(); document.getElementById('customerManual').focus(); }
+function getCustomerTerpilih(){
+  let v=document.getElementById('customer').value;
+  if(v==='__manual__'){
+    let manual=document.getElementById('customerManual').value.trim();
+    if(!manual) return '';
+    if(!dataCustomer.some(c=>String(c.nama).toLowerCase()===manual.toLowerCase())){
+      let kodeBaru='CUS-'+String(dataCustomer.length+1).padStart(3,'0');
+      dataCustomer.push({kode:kodeBaru,nama:manual,tipe:'Biasa',telp:'',alamat:'',ket:'Ditambah dari Jual Kredit beb',dibuat:new Date().toISOString()});
+      saveCustomer(dataCustomer);
+      isiDropdownCustomer();
+      document.getElementById('customer').value=manual;
+    }
+    return manual;
+  }
+  return v||'';
+}
+function isiBarang(){ let kode=document.getElementById('pilihBarang').value; let b=dataBarang.find(x=>String(x.kodebrg)===String(kode)); if(!b) return; document.getElementById('harga').value=b.hrgjual||b.harga||0; document.getElementById('stokTxt').innerText='Stok sekarang beb: '+fmt(b.jmlbrg)+' | HPP beb: '+fmtRp(b.hpp||0); hitungTotal(); }
+function hitungTotal(){ let qty=Number(document.getElementById('qty').value||0); let harga=Number(document.getElementById('harga').value||0); let diskon=Number(document.getElementById('diskon').value||0); document.getElementById('totalTxt').innerText=fmtRp(Math.max(0, qty*harga-diskon)); }
+function renderTabel(){
+  let kw=document.getElementById('cari').value.toLowerCase();
+  let list=dataJual.filter(x=>{ if(!kw) return true; return String(x.kode||'').toLowerCase().includes(kw) || String(x.nama||'').toLowerCase().includes(kw) || String(x.customer||'').toLowerCase().includes(kw) || String(x.noBukti||'').toLowerCase().includes(kw); });
+  let tbody=document.getElementById('tbodyJual'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display=list.length?'none':'block';
+  list.sort((a,b)=> new Date(a.waktu||0) - new Date(b.waktu||0));
+  list.forEach((x,idx)=>{
+    let idxAsli=dataJual.indexOf(x);
+    let badgeBayar = x.bayar==='Kredit' ? '<span class="badge b-kredit">KREDIT</span>' : x.bayar==='Cash' ? '<span class="badge b-cash">CASH</span>' : '<span style="color:#888">-</span>';
+    tbody.innerHTML+=`<tr><td class="center">${idx+1}</td><td>${x.waktuLocal||x.tanggal||'-'}</td><td class="center">${x.noBukti}</td><td class="center">${x.kode}</td><td>${x.nama}</td><td>${x.customer||'-'}</td><td class="num" style="color:#dc3545;font-weight:bold">${fmt(x.qty)}</td><td class="num">${fmtRp(x.harga)}</td><td class="num" style="font-weight:bold">${fmtRp(x.total)}</td><td class="center">${badgeBayar}</td><td class="center"><button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusJual(${idxAsli})">🗑️</button></td></tr>`;
+  });
+}
+function hapusJual(idxAsli){
+  let x=dataJual[idxAsli]; if(!x) return;
+  if(!confirm('Batalkan jual ini beb?\n\n'+x.nama+' | '+x.noBukti+' | Qty '+x.qty+'\n\nStok akan ditambah lagi beb.')) return;
+  let mentah=loadBarang(); let i=mentah.findIndex(m=>String(m.kodebrg)===String(x.kode)); if(i>=0){ mentah[i].jmlbrg=Number(mentah[i].jmlbrg||0)+Number(x.qty||0); saveBarang(mentah); }
+  let kartu=loadKartu(); let idxKartu=kartu.findIndex(k=>String(k.noBukti)===String(x.noBukti) && String(k.kode)===String(x.kode) && k.tipe==='Keluar' && Number(k.keluar)===Number(x.qty)); if(idxKartu>=0){ kartu.splice(idxKartu,1); saveKartu(kartu); }
+  dataJual.splice(idxAsli,1); saveJual(dataJual);
+  let trx=loadTransaksi(); let idxTrx=trx.findIndex(t=>String(t.noBukti)===String(x.noBukti) && String(t.kode)===String(x.kode) && Number(t.qty)===Number(x.qty)); if(idxTrx>=0){ trx.splice(idxTrx,1); saveTransaksi(trx); }
+  let masihAda = dataJual.some(b=>String(b.noBukti)===String(x.noBukti));
+  if(!masihAda){ let p=loadPiutang(); let baruP=p.filter(pp=>String(pp.noBukti)!==String(x.noBukti)); if(baruP.length!==p.length){ savePiutang(baruP); alert('Piutang nota ini juga dihapus beb ✅'); } }
+  loadData();
+  alert('Penjualan dibatalkan beb ✅ Stok sudah ditambah lagi beb.');
+}
+function exportJual(){
+  let data={barang:loadBarang(), kartu_stok:loadKartu(), penjualan:loadJual(), transaksi:loadTransaksi(), customer:loadCustomer(), piutang:loadPiutang(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='penjualan-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.tambahKeKeranjang=tambahKeKeranjang; window.hapusKeranjang=hapusKeranjang; window.selesaiJual=selesaiJual; window.pilihBayar=pilihBayar; window.konfirmasiKredit=konfirmasiKredit; window.hitungSisaPiutang=hitungSisaPiutang; window.tutupModalBayar=tutupModalBayar;
+window.isiBarang=isiBarang; window.hitungTotal=hitungTotal; window.hapusJual=hapusJual; window.exportJual=exportJual; window.renderTabel=renderTabel;
+window.isiDropdownCustomer=isiDropdownCustomer; window.cekCustomerManual=cekCustomerManual; window.tambahCustomerManual=tambahCustomerManual;
+window.bukaModalBarang=bukaModalBarang; window.tutupModalBarang=tutupModalBarang; window.renderModalBarang=renderModalBarang; window.pilihBarangModal=pilihBarangModal;
+window.klikBarang=klikBarang; window.ketikBarang=ketikBarang; window.enterBarang=enterBarang; window.enterModal=enterModal; window.resetItem=resetItem;
+cekTrial();
+loadData();
+</script>
+</body>
+</html>

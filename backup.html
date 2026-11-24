@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Backup & Restore - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.btn-ungu{background:#6f42c1;color:#fff;border-color:#5a32a3}
+.btn-orange{background:#fd7e14;color:#fff;border-color:#d96a00}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:14px;width:380px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;border-bottom:1px solid #aaa;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:6px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.summary{display:flex;gap:10px;padding:10px 10px 0;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:160px;flex:1}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+.alert{background:#fff3cd;border:1px solid #ffc107;padding:10px;margin:10px 10px 0;font-size:12px}
+.alert.merah{background:#f8d7da;border-color:#dc3545}
+.alert.hijau{background:#d4edda;border-color:#28a745}
+.dropzone{border:2px dashed #999;padding:20px;text-align:center;background:#f9f9f9;cursor:pointer;margin-top:10px}
+.dropzone.dragover{border-color:#007bff;background:#eaf2ff}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>💾 Backup & Restore</h2><p>Amankan data beb - jangan sampai hilang beb!</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='dashboard.html'">🛒 Dashboard</button>
+    <button class="btn btn-biru" onclick="window.location='labarugi.html'">📊 Laba Rugi</button>
+    <button class="btn btn-kuning" onclick="window.location='pettycash.html'">💵 Petty Cash</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div id="alertBackup" class="alert">Beb, cek beb terakhir backup beb kapan beb...</div>
+
+<div class="summary">
+  <div class="card"><span>Total Semua Data</span><b id="sumTotal">0 item</b></div>
+  <div class="card"><span>Ukuran Data</span><b id="sumUkuran">0 KB</b></div>
+  <div class="card"><span>Terakhir Backup</span><b id="sumTerakhir">Belum pernah beb</b></div>
+  <div class="card"><span>Terakhir Restore</span><b id="sumRestore">Belum pernah beb</b></div>
+</div>
+
+<div class="wrap">
+  <!-- BEB, BACKUP BEB -->
+  <div class="form">
+    <h3>⬇️ Backup Beb (Download)</h3>
+    <p style="font-size:11px;color:#555;margin:0">Beb, klik beb ini beb tiap beb selesai jualan beb / tiap minggu beb, simpan beb file nya beb di HP / Google Drive beb.</p>
+
+    <label>Nama File Backup</label>
+    <input id="namaFile" value="">
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-hijau" style="flex:1;padding:12px;font-size:14px" onclick="backupSemua()">⬇️ Backup SEMUA Data</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-biru" style="flex:1" onclick="backupPerModul()">⬇️ Backup 1 Modul</button>
+      <select id="pilihModul" style="flex:1">
+        <option value="tbl_mstrbrg">Barang (Master)</option>
+        <option value="vfp_kartu_stok">Kartu Stok</option>
+        <option value="vfp_penjualan">Penjualan</option>
+        <option value="vfp_pembelian">Pembelian</option>
+        <option value="vfp_transaksi">Transaksi Kasir</option>
+        <option value="vfp_customer">Customer</option>
+        <option value="vfp_supplier">Supplier</option>
+        <option value="vfp_hutang">Hutang</option>
+        <option value="vfp_piutang">Piutang</option>
+        <option value="vfp_pettycash">Petty Cash</option>
+        <option value="vfp_pettycash_saldo_awal">Saldo Awal Petty Cash</option>
+        <option value="vfp_beban">Beban (Lama)</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" style="flex:1" onclick="salinBackup()">📋 Salin Backup ke Clipboard</button>
+      <button class="btn btn-kuning" style="flex:1" onclick="lihatBackup()">👁️ Lihat Isi Backup</button>
+    </div>
+
+    <hr>
+
+    <h3>⬆️ Restore Beb (Upload)</h3>
+    <p style="font-size:11px;color:#555;margin:0">Beb, pilih beb file backup beb yang dulu beb pernah download beb.</p>
+
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileRestore').click()">
+      <div style="font-size:28px">📂</div>
+      <b>Klik / Seret File Backup Ke Sini Beb</b><br>
+      <span style="font-size:11px;color:#555">File .json beb, dari Backup SEMUA / Backup 1 Modul beb</span><br>
+      <span id="namaFileRestore" style="font-size:11px;color:#007bff;font-weight:bold"></span>
+    </div>
+    <input type="file" id="fileRestore" accept=".json,application/json" style="display:none" onchange="pilihFileRestore(event)">
+
+    <label style="margin-top:10px">Mode Restore</label>
+    <select id="modeRestore">
+      <option value="gabung">Gabung - Data lama tetap ada beb, data baru ditambah beb (Aman beb)</option>
+      <option value="timpa">Timpa - Hapus semua data lama beb, ganti dengan file backup beb (Hati-hati beb!)</option>
+    </select>
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-orange" style="flex:1;padding:12px;font-size:14px" onclick="restoreBackup()">⬆️ Restore Sekarang</button>
+    </div>
+    <p style="font-size:11px;color:#dc3545">Beb, sebelum Restore beb, Backup dulu beb data yang sekarang beb, biar beb aman beb kalau beb salah pilih file beb.</p>
+
+    <hr>
+
+    <h3>🗑️ Hapus Data Beb</h3>
+    <p style="font-size:11px;color:#555;margin:0">Beb, hati-hati beb, ini beb hapus permanen beb!</p>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-merah" style="flex:1" onclick="hapusSatuModul()">🗑️ Hapus 1 Modul</button>
+      <button class="btn btn-merah" style="flex:1" onclick="hapusSemua()">🗑️ Hapus SEMUA Data</button>
+    </div>
+  </div>
+
+  <!-- BEB, DAFTAR DATA BEB -->
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Isi Data Beb Sekarang</b>
+      <button class="btn btn-biru" onclick="loadData()">🔄 Refresh</button>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Modul</th><th>Key</th><th>Jumlah</th><th>Ukuran</th><th>Terakhir Diubah</th><th>Aksi</th></tr></thead>
+      <tbody id="tbodyBackup"></tbody>
+    </table>
+    </div>
+    <div style="padding:10px;font-size:11px;color:#555">
+      Beb, tips beb: <br>
+      1. Beb, Backup beb tiap hari beb setelah tutup toko beb, simpan beb di WhatsApp beb ke diri sendiri beb / Google Drive beb.<br>
+      2. Beb, Jangan beb simpan beb file backup beb cuma beb di 1 HP beb doang beb.<br>
+      3. Beb, Kalau beb ganti HP beb, install beb file-file html beb nya beb lagi beb, buka beb Backup beb, Restore beb file nya beb, beres beb ✅
+    </div>
+  </div>
+</div>
+
+<!-- BEB, MODAL LIHAT BACKUP BEB -->
+<div id="modalLihat" style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:12px">
+  <div style="background:#fff;width:100%;max-width:700px;max-height:85vh;display:flex;flex-direction:column;border-radius:8px;overflow:hidden">
+    <div style="padding:12px;display:flex;justify-content:space-between;background:#2a7abf;color:#fff"><h3 style="margin:0">👁️ Isi Backup Beb</h3><button style="background:#fff;border:none;padding:6px 10px;cursor:pointer;font-weight:bold" onclick="tutupModalLihat()">✖</button></div>
+    <div style="padding:10px"><textarea id="isiBackupTxt" readonly style="width:100%;height:400px;font-family:monospace;font-size:11px;padding:8px"></textarea></div>
+    <div style="padding:10px"><button class="btn" style="width:100%" onclick="tutupModalLihat()">Tutup</button></div>
+  </div>
+</div>
+
+<script>
+const SEMUA_KEY = [
+  {key:'tbl_mstrbrg', nama:'Barang (Master)'},
+  {key:'vfp_kartu_stok', nama:'Kartu Stok'},
+  {key:'vfp_penjualan', nama:'Penjualan'},
+  {key:'vfp_pembelian', nama:'Pembelian'},
+  {key:'vfp_transaksi', nama:'Transaksi Kasir'},
+  {key:'vfp_customer', nama:'Customer'},
+  {key:'vfp_supplier', nama:'Supplier'},
+  {key:'vfp_hutang', nama:'Hutang'},
+  {key:'vfp_piutang', nama:'Piutang'},
+  {key:'vfp_pettycash', nama:'Petty Cash'},
+  {key:'vfp_pettycash_saldo_awal', nama:'Saldo Awal Petty Cash'},
+  {key:'vfp_beban', nama:'Beban (Lama)'},
+  {key:'vfp_customer_terpilih', nama:'Customer Terpilih (Sementara)'},
+];
+const KEY_META = 'vfp_backup_meta';
+
+function fmt(n){ return Number(n||0).toLocaleString('id-ID'); }
+function getData(key){
+  try{ let v = localStorage.getItem(key); if(!v) return null; return JSON.parse(v); }catch(e){ return localStorage.getItem(key); }
+}
+function getUkuran(key){
+  let v = localStorage.getItem(key) || '';
+  return new Blob([v]).size;
+}
+function formatUkuran(byte){
+  if(byte < 1024) return byte + ' B';
+  if(byte < 1024*1024) return (byte/1024).toFixed(1) + ' KB';
+  return (byte/1024/1024).toFixed(2) + ' MB';
+}
+function loadMeta(){ try{return JSON.parse(localStorage.getItem(KEY_META))||{}}catch(e){return{}} }
+function saveMeta(m){ localStorage.setItem(KEY_META, JSON.stringify(m)); }
+
+let fileRestoreData = null;
+let fileRestoreNama = '';
+
+function loadData(){
+  let totalItem = 0;
+  let totalUkuran = 0;
+  let tbody = document.getElementById('tbodyBackup'); tbody.innerHTML='';
+  SEMUA_KEY.forEach((m,idx)=>{
+    let data = getData(m.key);
+    let jumlah = Array.isArray(data) ? data.length : (data && typeof data==='object' ? Object.keys(data).length : (data ? 1 : 0));
+    let ukuran = getUkuran(m.key);
+    totalItem += jumlah;
+    totalUkuran += ukuran;
+    let terakhir = '-';
+    if(Array.isArray(data) && data.length){
+      let t = data[data.length-1];
+      if(t && (t.dibuat || t.waktu)) terakhir = new Date(t.dibuat || t.waktu).toLocaleString('id-ID');
+      else if(t && t.tanggal) terakhir = t.tanggal;
+    }
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td><b>${m.nama}</b></td>
+      <td style="font-size:11px;color:#555">${m.key}</td>
+      <td class="num"><b>${fmt(jumlah)}</b></td>
+      <td class="num">${formatUkuran(ukuran)}</td>
+      <td class="center">${terakhir}</td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-biru" style="padding:4px 8px" onclick="backupSatuKey('${m.key}')">⬇️</button>
+        <button class="btn btn-merah" style="padding:4px 8px" onclick="hapusSatuKey('${m.key}')">🗑️</button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('sumTotal').innerText = fmt(totalItem) + ' item';
+  document.getElementById('sumUkuran').innerText = formatUkuran(totalUkuran);
+  let meta = loadMeta();
+  document.getElementById('sumTerakhir').innerText = meta.terakhirBackup ? new Date(meta.terakhirBackup).toLocaleString('id-ID') : 'Belum pernah beb';
+  document.getElementById('sumRestore').innerText = meta.terakhirRestore ? new Date(meta.terakhirRestore).toLocaleString('id-ID') : 'Belum pernah beb';
+  if(!document.getElementById('namaFile').value){
+    document.getElementById('namaFile').value = 'backup-vfp-' + new Date().toISOString().split('T')[0];
+  }
+  // BEB, ALERT BACKUP BEB
+  let alertEl = document.getElementById('alertBackup');
+  if(!meta.terakhirBackup){
+    alertEl.className = 'alert merah';
+    alertEl.innerText = '⚠️ Beb, belum pernah Backup beb! Klik beb Backup SEMUA Data beb sekarang beb, biar beb data beb aman beb.';
+  }else{
+    let selisihHari = (Date.now() - new Date(meta.terakhirBackup).getTime()) / (1000*60*60*24);
+    if(selisihHari > 7){
+      alertEl.className = 'alert merah';
+      alertEl.innerText = '⚠️ Beb, terakhir Backup beb udah ' + Math.floor(selisihHari) + ' hari lalu beb (' + new Date(meta.terakhirBackup).toLocaleString('id-ID') + '). Backup lagi beb sekarang beb!';
+    }else if(selisihHari > 1){
+      alertEl.className = 'alert';
+      alertEl.innerText = 'ℹ️ Beb, terakhir Backup beb ' + Math.floor(selisihHari) + ' hari lalu beb. Udah lumayan beb, tapi beb Backup lagi beb biar beb aman beb.';
+    }else{
+      alertEl.className = 'alert hijau';
+      alertEl.innerText = '✅ Beb, aman beb! Terakhir Backup beb ' + new Date(meta.terakhirBackup).toLocaleString('id-ID') + ' beb.';
+    }
+  }
+}
+
+function buatObjekBackup(keys){
+  let data = {};
+  keys.forEach(k=>{
+    let v = localStorage.getItem(k);
+    if(v !== null){
+      try{ data[k] = JSON.parse(v); }catch(e){ data[k] = v; }
+    }
+  });
+  return {
+    app: 'VFP',
+    versi: '1.0',
+    exportAt: new Date().toISOString(),
+    exportAtLocal: new Date().toLocaleString('id-ID'),
+    keys: keys,
+    data: data
+  };
+}
+function downloadJson(obj, nama){
+  let blob = new Blob([JSON.stringify(obj,null,2)], {type:'application/json'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nama + '.json';
+  a.click();
+  let meta = loadMeta();
+  meta.terakhirBackup = new Date().toISOString();
+  saveMeta(meta);
+  loadData();
+}
+function backupSemua(){
+  let keys = SEMUA_KEY.map(m=>m.key);
+  let obj = buatObjekBackup(keys);
+  let nama = document.getElementById('namaFile').value.trim() || ('backup-vfp-' + new Date().toISOString().split('T')[0]);
+  downloadJson(obj, nama);
+  alert('Backup SEMUA berhasil beb ✅\n\nFile: ' + nama + '.json\nSimpan beb file nya beb di Google Drive / WA beb ya beb, jangan beb cuma di HP ini beb doang beb.');
+}
+function backupSatuKey(key){
+  let obj = buatObjekBackup([key]);
+  let nama = 'backup-vfp-' + key + '-' + new Date().toISOString().split('T')[0];
+  downloadJson(obj, nama);
+  alert('Backup ' + key + ' berhasil beb ✅');
+}
+function backupPerModul(){
+  let key = document.getElementById('pilihModul').value;
+  backupSatuKey(key);
+}
+function salinBackup(){
+  let keys = SEMUA_KEY.map(m=>m.key);
+  let obj = buatObjekBackup(keys);
+  let txt = JSON.stringify(obj);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{
+      alert('Backup disalin beb ✅\n\nTempel beb di WA / Notes beb, simpan beb ya beb.');
+    }).catch(()=>{ fallbackSalin(txt); });
+  }else{ fallbackSalin(txt); }
+}
+function fallbackSalin(txt){
+  let ta = document.createElement('textarea');
+  ta.value = txt;
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); alert('Backup disalin beb ✅'); }catch(e){ alert('Gagal salin beb, pakai Download aja beb.'); }
+  ta.remove();
+}
+function lihatBackup(){
+  let keys = SEMUA_KEY.map(m=>m.key);
+  let obj = buatObjekBackup(keys);
+  document.getElementById('isiBackupTxt').value = JSON.stringify(obj,null,2);
+  document.getElementById('modalLihat').style.display = 'flex';
+}
+function tutupModalLihat(){ document.getElementById('modalLihat').style.display='none'; }
+
+function pilihFileRestore(e){
+  let file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('namaFileRestore').innerText = 'File dipilih beb: ' + file.name;
+  let reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      fileRestoreData = JSON.parse(ev.target.result);
+      fileRestoreNama = file.name;
+      alert('File dibaca beb ✅\n\nFile: ' + file.name + '\nIsi: ' + Object.keys(fileRestoreData.data || fileRestoreData).join(', ') + '\n\nPilih beb Mode Restore beb, lalu klik Restore Sekarang beb.');
+    }catch(err){
+      alert('File nya beb bukan JSON beb / rusak beb! Coba beb pilih file backup beb yang bener beb.');
+      fileRestoreData = null;
+    }
+  };
+  reader.readAsText(file);
+}
+// BEB, DRAG & DROP BEB
+let dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('dragover'); });
+dropzone.addEventListener('drop', function(e){
+  e.preventDefault(); dropzone.classList.remove('dragover');
+  let file = e.dataTransfer.files[0];
+  if(!file) return;
+  document.getElementById('fileRestore').files = e.dataTransfer.files;
+  pilihFileRestore({target:{files:e.dataTransfer.files}});
+});
+
+function restoreBackup(){
+  if(!fileRestoreData) return alert('Pilih file backup dulu beb! Klik kotak di atas beb.');
+  let mode = document.getElementById('modeRestore').value;
+  let dataMasuk = fileRestoreData.data || fileRestoreData;
+  // BEB, KALAU FILE BACKUP LAMA BEB FORMAT NYA BEB LANGSUNG DATA BEB (BUKAN {data:{}}) BEB
+  if(!fileRestoreData.data && fileRestoreData.customer){
+    dataMasuk = fileRestoreData;
+  }
+  let keysMasuk = Object.keys(dataMasuk);
+  if(keysMasuk.length===0) return alert('File backup nya beb kosong beb!');
+
+  let pesan = 'Restore ' + keysMasuk.length + ' modul beb?\n\n' + keysMasuk.join('\n') + '\n\nMode: ' + (mode==='timpa' ? 'TIMPA - data lama dihapus beb!' : 'GABUNG - data lama tetap ada beb');
+  if(mode==='timpa'){
+    if(!confirm(pesan + '\n\n⚠️ YAKIN BEB? Data lama beb akan hilang beb! Backup dulu beb data sekarang beb sebelum lanjut beb.')) return;
+    if(!confirm('Beneran beb mau Timpa beb? Ketik OK beb di hati beb, klik OK beb lagi beb kalau beb yakin beb.')) return;
+  }else{
+    if(!confirm(pesan)) return;
+  }
+
+  let jumlahMasuk = 0;
+  keysMasuk.forEach(k=>{
+    let baru = dataMasuk[k];
+    if(baru === undefined) return;
+    if(mode==='timpa'){
+      localStorage.setItem(k, JSON.stringify(baru));
+      jumlahMasuk += Array.isArray(baru) ? baru.length : 1;
+    }else{
+      // BEB, GABUNG BEB - ARRAY BEB DIGABUNG BEB, OBJEK BEB DIGABUNG BEB
+      let lamaRaw = localStorage.getItem(k);
+      if(!lamaRaw){
+        localStorage.setItem(k, JSON.stringify(baru));
+        jumlahMasuk += Array.isArray(baru) ? baru.length : 1;
+      }else{
+        try{
+          let lama = JSON.parse(lamaRaw);
+          if(Array.isArray(lama) && Array.isArray(baru)){
+            // BEB, HINDARI DUPLIKAT BEB PAKAI JSON STRING BEB
+            let sudahAda = new Set(lama.map(x=>JSON.stringify(x)));
+            let tambahan = baru.filter(x=>!sudahAda.has(JSON.stringify(x)));
+            let gabung = lama.concat(tambahan);
+            localStorage.setItem(k, JSON.stringify(gabung));
+            jumlahMasuk += tambahan.length;
+          }else if(typeof lama==='object' && typeof baru==='object'){
+            let gabung = {...lama, ...baru};
+            localStorage.setItem(k, JSON.stringify(gabung));
+            jumlahMasuk += Object.keys(baru).length;
+          }else{
+            localStorage.setItem(k, JSON.stringify(baru));
+          }
+        }catch(e){
+          localStorage.setItem(k, JSON.stringify(baru));
+        }
+      }
+    }
+  });
+  let meta = loadMeta();
+  meta.terakhirRestore = new Date().toISOString();
+  saveMeta(meta);
+  loadData();
+  fileRestoreData = null;
+  document.getElementById('fileRestore').value = '';
+  document.getElementById('namaFileRestore').innerText = '';
+  alert('Restore berhasil beb ✅\n\n' + jumlahMasuk + ' item masuk beb.\nRefresh beb halaman lain beb (Kasir, dll) beb biar beb data baru beb muncul beb.');
+}
+function hapusSatuKey(key){
+  let nama = SEMUA_KEY.find(m=>m.key===key)?.nama || key;
+  if(!confirm('Hapus ' + nama + ' beb?\n\nKey: ' + key + '\n\nData nya beb akan hilang beb! Backup dulu beb sebelum hapus beb.')) return;
+  localStorage.removeItem(key);
+  loadData();
+  alert(nama + ' dihapus beb ✅');
+}
+function hapusSatuModul(){
+  let key = document.getElementById('pilihModul').value;
+  hapusSatuKey(key);
+}
+function hapusSemua(){
+  if(!confirm('⚠️ HAPUS SEMUA DATA BEB?\n\nSemua Barang, Jual, Beli, Customer, Hutang, Piutang, Petty Cash beb akan hilang beb!\n\nBackup dulu beb sebelum hapus beb!')) return;
+  let konfirmasi = prompt('Ketik beb HAPUS beb untuk konfirmasi beb:');
+  if(konfirmasi !== 'HAPUS') return alert('Batal beb, gak jadi hapus beb ✅');
+  SEMUA_KEY.forEach(m=>localStorage.removeItem(m.key));
+  localStorage.removeItem(KEY_META);
+  loadData();
+  alert('Semua data dihapus beb ✅\n\nKalau beb salah hapus beb, Restore beb file backup beb nya beb.');
+}
+window.backupSemua=backupSemua; window.backupPerModul=backupPerModul; window.backupSatuKey=backupSatuKey; window.salinBackup=salinBackup; window.lihatBackup=lihatBackup; window.tutupModalLihat=tutupModalLihat;
+window.pilihFileRestore=pilihFileRestore; window.restoreBackup=restoreBackup; window.hapusSatuModul=hapusSatuModul; window.hapusSemua=hapusSemua; window.hapusSatuKey=hapusSatuKey; window.loadData=loadData;
+loadData();
+</script>
+</body>
+</html>
