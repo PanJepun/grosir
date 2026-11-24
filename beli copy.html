@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Beli / Stok Masuk - VFP</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Tahoma,Arial,sans-serif;font-size:12px;margin:0;background:#e8e8e8;color:#000;}
+.topbar{background:#d9d9d9;padding:10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;flex-wrap:wrap;gap:8px}
+.topbar h2{margin:0;font-size:16px}
+.topbar p{margin:2px 0 0;font-size:11px;color:#555}
+.btn{padding:6px 14px;border:1px solid #999;background:#e8e8e8;cursor:pointer;font-weight:bold;font-size:12px}
+.btn-hijau{background:#28a745;color:#fff;border-color:#1e7e34}
+.btn-biru{background:#007bff;color:#fff}
+.btn-kuning{background:#ffc107}
+.btn-merah{background:#dc3545;color:#fff;border-color:#a71d2a}
+.btn-abu{background:#6c757d;color:#fff}
+.wrap{padding:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.form{background:#fff;border:1px solid #aaa;padding:12px;width:360px;max-width:100%}
+.form h3{margin:0 0 10px}
+.form label{font-size:11px;color:#555;display:block;margin-top:8px}
+.form input,.form select{width:100%;padding:7px;border:1px solid #999;font-size:13px;margin-top:3px;background:#fff}
+.form .row{display:flex;gap:8px}
+.form .row>div{flex:1}
+.total-box{background:#f2f2f2;border:1px solid #aaa;padding:8px;margin-top:10px;text-align:right;font-size:14px}
+.total-box b{font-size:18px}
+.list{flex:1;background:#fff;border:1px solid #aaa;min-width:300px}
+.list-head{padding:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #aaa}
+.list-head input{padding:6px;border:1px solid #999;width:220px}
+.table-wrap{overflow:auto;max-height:60vh}
+table{border-collapse:collapse;width:100%}
+th{background:#2a7abf;color:#fff;padding:6px 5px;font-size:11px;border:1px solid #1f5f95;text-align:center;white-space:nowrap;position:sticky;top:0}
+td{padding:5px;border:1px solid #ccc;font-size:12px}
+td.num{text-align:right} td.center{text-align:center}
+tr:nth-child(even) td{background:#f7f7f7}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;color:#fff;background:#28a745}
+.summary{display:flex;gap:10px;padding:0 10px 10px;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #aaa;padding:10px 14px;min-width:140px}
+.card span{font-size:11px;color:#555}
+.card b{font-size:18px;display:block;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div><h2>🛒 Beli / Stok Masuk</h2><p>Tambah stok beb - otomatis masuk ke Master & Kartu Stok beb</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-hijau" onclick="window.location='kasir.html'">🛒 Kasir</button>
+    <button class="btn btn-biru" onclick="window.location='kartustok.html'">📒 Kartu Stok</button>
+    <button class="btn btn-kuning" onclick="exportBeli()">⬇ Export</button>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</div>
+
+<div class="summary" style="padding-top:10px">
+  <div class="card"><span>Total Pembelian (Baris)</span><b id="sumBaris">0</b></div>
+  <div class="card"><span>Total Qty Masuk</span><b id="sumQty">0</b></div>
+  <div class="card"><span>Total Nilai Beli</span><b id="sumNilai">Rp 0</b></div>
+  <div class="card"><span>Barang Terdaftar</span><b id="sumBarang">0</b></div>
+</div>
+
+<div class="wrap">
+  <!-- BEB, FORM BELI BEB -->
+  <div class="form">
+    <h3>➕ Form Beli Beb</h3>
+    <label>No Bukti / No Nota Beli</label>
+    <input id="noBukti" placeholder="B-00001 / otomatis kalau kosong beb">
+    <label>Tanggal</label>
+    <input id="tgl" type="date">
+    <label>Supplier</label>
+    <input id="supplier" placeholder="Nama toko / supplier beb">
+    <label>Barang</label>
+    <select id="pilihBarang" onchange="isiBarang()"><option value="">-- Pilih Barang Beb --</option></select>
+    <div style="margin-top:6px"><button class="btn btn-abu" onclick="tambahBarangBaru()">➕ Barang Baru</button> <span style="font-size:11px;color:#555">Kalau barang belum ada beb</span></div>
+
+    <div class="row">
+      <div><label>Qty Beli</label><input id="qty" type="number" min="1" value="1" oninput="hitungTotal()"></div>
+      <div><label>Harga Beli / Pcs (HPP)</label><input id="harga" type="number" min="0" value="0" oninput="hitungTotal()"></div>
+    </div>
+
+    <label>Harga Jual / Pcs (opsional beb, kalau mau ubah beb)</label>
+    <input id="hargaJual" type="number" min="0" placeholder="Kosong = tidak diubah beb">
+
+    <label>Keterangan</label>
+    <input id="ket" placeholder="Contoh: Beli di grosir beb">
+
+    <div class="total-box">Total: <b id="totalTxt">Rp 0</b><br><span id="stokTxt" style="font-size:11px;color:#555"></span></div>
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-hijau" style="flex:1" onclick="simpanBeli()">💾 Simpan Beli</button>
+      <button class="btn" onclick="resetForm()">Reset</button>
+    </div>
+    <p style="font-size:11px;color:#555">Beb, habis Simpan beb, stok di Master langsung nambah beb + muncul beb di Kartu Stok beb sebagai <b>Masuk</b> beb.</p>
+  </div>
+
+  <!-- BEB, RIWAYAT BELI BEB -->
+  <div class="list">
+    <div class="list-head">
+      <b>📋 Riwayat Pembelian Beb</b>
+      <input id="cari" placeholder="Cari kode / nama / supplier / no bukti..." oninput="renderTabel()">
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Tanggal</th><th>No Bukti</th><th>Kode</th><th>Nama Barang</th><th>Supplier</th><th>Qty</th><th>Harga Beli</th><th>Total</th><th>Hapus</th></tr></thead>
+      <tbody id="tbodyBeli"></tbody>
+    </table>
+    <div id="emptyMsg" style="text-align:center;padding:30px;color:#888">Belum ada pembelian beb. Beli dulu beb di kiri beb.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_BARANG='tbl_mstrbrg', KEY_KARTU='vfp_kartu_stok', KEY_BELI='vfp_pembelian';
+function fmt(n){ return Number(n||0).toLocaleString('id-ID',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtRp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
+function loadBarang(){ try{return JSON.parse(localStorage.getItem(KEY_BARANG))||[]}catch(e){return[]} }
+function loadKartu(){ try{return JSON.parse(localStorage.getItem(KEY_KARTU))||[]}catch(e){return[]} }
+function loadBeli(){ try{return JSON.parse(localStorage.getItem(KEY_BELI))||[]}catch(e){return[]} }
+function saveBarang(a){ localStorage.setItem(KEY_BARANG, JSON.stringify(a)); }
+function saveKartu(a){ localStorage.setItem(KEY_KARTU, JSON.stringify(a)); }
+function saveBeli(a){ localStorage.setItem(KEY_BELI, JSON.stringify(a)); }
+
+let dataBarang=[], dataBeli=[];
+
+function loadData(){
+  dataBarang = loadBarang();
+  dataBeli = loadBeli();
+  let sel = document.getElementById('pilihBarang');
+  let cur = sel.value;
+  sel.innerHTML = '<option value="">-- Pilih Barang Beb --</option>' + dataBarang.map(b=>`<option value="${b.kodebrg}">${b.kodebrg} - ${b.namabrg} (Stok: ${fmt(b.jmlbrg)})</option>`).join('');
+  sel.value = cur;
+  if(!document.getElementById('tgl').value) document.getElementById('tgl').value = new Date().toISOString().split('T')[0];
+  if(!document.getElementById('noBukti').value) document.getElementById('noBukti').value = buatNoBukti();
+  document.getElementById('sumBaris').innerText = dataBeli.length;
+  document.getElementById('sumQty').innerText = fmt(dataBeli.reduce((a,b)=>a+Number(b.qty||0),0));
+  document.getElementById('sumNilai').innerText = fmtRp(dataBeli.reduce((a,b)=>a+Number(b.total||0),0));
+  document.getElementById('sumBarang').innerText = dataBarang.length;
+  renderTabel();
+  hitungTotal();
+}
+function buatNoBukti(){
+  let n = dataBeli.length + 1;
+  return 'B-' + String(n).padStart(5,'0');
+}
+function isiBarang(){
+  let kode = document.getElementById('pilihBarang').value;
+  let b = dataBarang.find(x=>String(x.kodebrg)===String(kode));
+  if(!b) return;
+  document.getElementById('harga').value = b.hpp||0;
+  document.getElementById('hargaJual').value = b.hrgjual||b.harga||'';
+  document.getElementById('stokTxt').innerText = 'Stok sekarang beb: '+fmt(b.jmlbrg)+' | Harga jual beb: '+fmtRp(b.hrgjual||b.harga||0);
+  hitungTotal();
+}
+function hitungTotal(){
+  let qty = Number(document.getElementById('qty').value||0);
+  let harga = Number(document.getElementById('harga').value||0);
+  document.getElementById('totalTxt').innerText = fmtRp(qty*harga);
+}
+function tambahBarangBaru(){
+  let kode = prompt('Kode Barang baru beb, contoh: BRG-001');
+  if(!kode) return;
+  if(dataBarang.some(b=>String(b.kodebrg)===String(kode))) return alert('Kode sudah ada beb!');
+  let nama = prompt('Nama Barang beb:');
+  if(!nama) return;
+  let hargaJual = Number(prompt('Harga Jual beb:', '0')||0);
+  let hpp = Number(prompt('Harga Beli / HPP beb:', '0')||0);
+  dataBarang.push({kodebrg:kode, namabrg:nama, jmlbrg:0, hpp:hpp, hrgjual:hargaJual, harga:hargaJual});
+  saveBarang(dataBarang);
+  loadData();
+  document.getElementById('pilihBarang').value = kode;
+  isiBarang();
+  alert('Barang baru ditambah beb ✅ Sekarang tinggal isi Qty beb lalu Simpan Beli beb.');
+}
+function simpanBeli(){
+  let kode = document.getElementById('pilihBarang').value;
+  if(!kode) return alert('Pilih barang dulu beb!');
+  let qty = Number(document.getElementById('qty').value||0);
+  let harga = Number(document.getElementById('harga').value||0);
+  if(qty<=0) return alert('Qty harus > 0 beb!');
+  let b = dataBarang.find(x=>String(x.kodebrg)===String(kode));
+  if(!b) return alert('Barang tidak ketemu beb!');
+  let noBukti = document.getElementById('noBukti').value || buatNoBukti();
+  let tgl = document.getElementById('tgl').value || new Date().toISOString().split('T')[0];
+  let supplier = document.getElementById('supplier').value || '-';
+  let ket = document.getElementById('ket').value || '';
+  let hargaJualInput = document.getElementById('hargaJual').value;
+  let waktu = new Date(tgl + 'T' + new Date().toTimeString().slice(0,8)).toISOString();
+  let waktuLocal = new Date(waktu).toLocaleString('id-ID');
+
+  // BEB, TAMBAH STOK DI MASTER BEB
+  b.jmlbrg = Number(b.jmlbrg||0) + qty;
+  // BEB, UPDATE HPP KE HARGA BELI TERBARU BEB, HARGA JUAL HANYA KALAU DIISI BEB
+  if(harga>0) b.hpp = harga;
+  if(hargaJualInput!=='' && hargaJualInput!==null) { b.hrgjual = Number(hargaJualInput); b.harga = Number(hargaJualInput); }
+  saveBarang(dataBarang);
+
+  // BEB, MASUK KE KARTU STOK BEB SEBAGAI MASUK BEB
+  let kartu = loadKartu();
+  kartu.push({waktu:waktu, waktuLocal:waktuLocal, kode:b.kodebrg, nama:b.namabrg, tipe:'Masuk', noBukti:noBukti, masuk:qty, keluar:0, sisa:b.jmlbrg, supplier:supplier, ket:ket});
+  saveKartu(kartu);
+
+  // BEB, SIMPAN RIWAYAT BELI BEB
+  dataBeli.push({waktu:waktu, waktuLocal:waktuLocal, tanggal:tgl, noBukti:noBukti, kode:b.kodebrg, nama:b.namabrg, supplier:supplier, qty:qty, harga:harga, total:qty*harga, ket:ket});
+  saveBeli(dataBeli);
+
+  alert('Beli disimpan beb ✅\n\n'+b.namabrg+' +'+qty+' beb\nStok sekarang beb: '+fmt(b.jmlbrg));
+  resetForm();
+  loadData();
+}
+function resetForm(){
+  document.getElementById('pilihBarang').value='';
+  document.getElementById('qty').value=1;
+  document.getElementById('harga').value=0;
+  document.getElementById('hargaJual').value='';
+  document.getElementById('supplier').value='';
+  document.getElementById('ket').value='';
+  document.getElementById('noBukti').value = buatNoBukti();
+  document.getElementById('stokTxt').innerText='';
+  hitungTotal();
+}
+function renderTabel(){
+  let kw = document.getElementById('cari').value.toLowerCase();
+  let list = dataBeli.filter(x=>{
+    if(!kw) return true;
+    return String(x.kode||'').toLowerCase().includes(kw) || String(x.nama||'').toLowerCase().includes(kw) || String(x.supplier||'').toLowerCase().includes(kw) || String(x.noBukti||'').toLowerCase().includes(kw);
+  });
+  let tbody = document.getElementById('tbodyBeli'); tbody.innerHTML='';
+  document.getElementById('emptyMsg').style.display = list.length ? 'none':'block';
+  list.sort((a,b)=> new Date(b.waktu||0) - new Date(a.waktu||0));
+  list.forEach((x,idx)=>{
+    let idxAsli = dataBeli.indexOf(x);
+    tbody.innerHTML += `<tr>
+      <td class="center">${idx+1}</td>
+      <td>${x.waktuLocal||x.tanggal||'-'}</td>
+      <td class="center">${x.noBukti}</td>
+      <td class="center">${x.kode}</td>
+      <td>${x.nama}</td>
+      <td>${x.supplier||'-'}</td>
+      <td class="num" style="color:#28a745;font-weight:bold">${fmt(x.qty)}</td>
+      <td class="num">${fmtRp(x.harga)}</td>
+      <td class="num" style="font-weight:bold">${fmtRp(x.total)}</td>
+      <td class="center"><button class="btn btn-merah" style="padding:4px 8px;" onclick="hapusBeli(${idxAsli})">🗑️</button></td>
+    </tr>`;
+  });
+}
+function hapusBeli(idxAsli){
+  let x = dataBeli[idxAsli];
+  if(!x) return;
+  if(!confirm('Batalkan beli ini beb?\n\n'+x.nama+' | '+x.noBukti+' | Qty '+x.qty+'\n\nStok akan dikurangi lagi beb.')) return;
+  // BEB, KURANGI STOK LAGI BEB
+  let mentah = loadBarang();
+  let i = mentah.findIndex(m=>String(m.kodebrg)===String(x.kode));
+  if(i>=0){ mentah[i].jmlbrg = Number(mentah[i].jmlbrg||0) - Number(x.qty||0); saveBarang(mentah); }
+  // BEB, HAPUS DARI KARTU STOK BEB YANG SAMA BEB
+  let kartu = loadKartu();
+  let idxKartu = kartu.findIndex(k=>String(k.noBukti)===String(x.noBukti) && String(k.kode)===String(x.kode) && k.tipe==='Masuk' && Number(k.masuk)===Number(x.qty));
+  if(idxKartu>=0){ kartu.splice(idxKartu,1); saveKartu(kartu); }
+  dataBeli.splice(idxAsli,1);
+  saveBeli(dataBeli);
+  loadData();
+  alert('Pembelian dibatalkan beb ✅ Stok sudah dikurangi beb.');
+}
+function exportBeli(){
+  let data={barang:loadBarang(), kartu_stok:loadKartu(), pembelian:loadBeli(), exportAt:new Date().toISOString()};
+  let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='pembelian-'+new Date().toISOString().split('T')[0]+'.json'; a.click();
+}
+window.simpanBeli=simpanBeli; window.resetForm=resetForm; window.tambahBarangBaru=tambahBarangBaru;
+window.isiBarang=isiBarang; window.hitungTotal=hitungTotal; window.hapusBeli=hapusBeli; window.exportBeli=exportBeli; window.renderTabel=renderTabel;
+loadData();
+</script>
+</body>
+</html>
